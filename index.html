@@ -2,1221 +2,318 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <title>Cow Jump 🐄</title>
+  <title>Lamumu Jump 🐄</title>
   <style>
-    :root {
-      --bg1: #87CEEB; /* sky */
-      --bg2: #E0F7FA; /* horizon */
-      --ground: #78c850;
-      --ui: #0f172a;
-      --white: #ffffff;
-      --shadow: rgba(0,0,0,.15);
+    :root{
+      --bg1: #0f172a; /* deep */
+      --bg2: #071233; /* deep blue */
+      --panel: rgba(255,255,255,0.06);
+      --glass: rgba(255,255,255,0.08);
       --accent: #ff7a59;
+      --accent-2: #ffd166;
+      --muted: rgba(255,255,255,0.6);
+      --shadow: 0 12px 30px rgba(2,6,23,0.6);
     }
-    html, body {
-      height: 100%;
-      margin: 0;
-      background: linear-gradient(180deg, var(--bg1), var(--bg2));
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-      color: var(--ui);
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}
+    body{
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(255,122,89,0.06), transparent), linear-gradient(180deg,var(--bg2),var(--bg1));
+      color:var(--muted);
+      display:flex;align-items:center;justify-content:center;padding:18px;
     }
-    .wrap {
-      display: grid;
-      place-items: center;
-      height: 100%;
-      padding: 12px;
-      box-sizing: border-box;
-    }
-    canvas {
-      width: min(96vw, 420px);
-      height: calc(min(96vw, 420px) * 16 / 9);
-      max-height: 92vh;
-      image-rendering: pixelated;
-      border-radius: 16px;
-      box-shadow: 0 20px 40px var(--shadow);
-      background: linear-gradient(180deg, var(--bg1), var(--bg2));
-      display: block;
-    }
-    .hud {
-      position: fixed;
-      top: 12px; left: 0; right: 0;
-      display: grid; place-items: center;
-      pointer-events: none;
-      font-weight: 700;
-      text-shadow: 0 2px 8px rgba(0,0,0,.25);
-    }
-    .hud .score {
-      background: rgba(255,255,255,.6);
-      padding: 6px 12px;
-      border-radius: 999px;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      box-shadow: 0 6px 20px var(--shadow);
-    }
-    .footer {
-      position: fixed; bottom: 10px; left: 0; right: 0;
-      text-align: center; font-size: 12px; opacity: .7;
-      user-select: none;
-    }
-    .btnbar {
-      margin-top: 8px; display: flex; gap: 8px; justify-content: center;
-    }
-    .btn {
-      appearance: none; border: 0; border-radius: 12px; padding: 10px 14px;
-      font-weight: 700; background: var(--accent); color: white; box-shadow: 0 6px 16px rgba(255,122,89,.35);
-      cursor: pointer;
-    }
-    .btn.secondary { background: #111827; box-shadow: 0 6px 16px rgba(0,0,0,.25); }
-    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; clip-path: inset(50%); }
+    .container{width:min(960px,96vw);max-width:420px;position:relative}/* Header / Card */
+.card{
+  border-radius:18px;overflow:hidden;box-shadow:var(--shadow);backdrop-filter:blur(8px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+  padding:14px;display:flex;flex-direction:column;gap:10px
+}
+.topbar{display:flex;align-items:center;justify-content:space-between}
+.title{display:flex;align-items:center;gap:10px}
+.logo{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:0 6px 18px rgba(255,122,89,0.24);font-weight:800;color:white}
+.title h1{margin:0;font-size:18px;color:#fff}
+.subtitle{margin:0;font-size:11px;opacity:.9}
+
+/* Canvas */
+.game-wrap{display:grid;place-items:center;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));border-radius:12px;padding:10px}
+canvas{width:100%;height:auto;border-radius:12px;display:block;background:linear-gradient(180deg,#bfe9ff 0%, #dff6ff 25%, transparent 60%)}
+
+.hud{display:flex;justify-content:space-between;align-items:center;padding:6px}
+.pill{background:var(--panel);padding:8px 12px;border-radius:999px;font-weight:700;color:white;display:inline-flex;gap:8px;align-items:center}
+.controls{display:flex;gap:8px}
+.btn{appearance:none;border:0;padding:8px 12px;border-radius:12px;background:transparent;color:var(--muted);cursor:pointer;font-weight:700}
+.btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#081224}
+
+.footer{display:flex;justify-content:space-between;align-items:center;padding:8px 6px;font-size:12px;color:var(--muted)}
+
+/* Overlay */
+.overlay{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.overlay .message{pointer-events:auto;background:linear-gradient(180deg,rgba(255,255,255,0.95),#fff);color:#071233;padding:18px;border-radius:14px;text-align:center;box-shadow:0 10px 30px rgba(2,6,23,0.3)}
+.overlay h2{margin:0 0 8px 0}
+.small{font-size:13px;color:#243447}
+
+/* small responsive tweaks */
+@media (max-width:420px){ .title h1{font-size:16px} }
+
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <canvas id="game" width="480" height="270" aria-label="Cow Jump game"></canvas>
+  <div class="container">
+    <div class="card">
+      <div class="topbar">
+        <div class="title">
+          <div class="logo">LM</div>
+          <div>
+            <h1>Lamumu Jump</h1>
+            <div class="subtitle">Tap where you want the cow to land — simple & chill</div>
+          </div>
+        </div>
+        <div class="pill">Score: <span id="score">0</span></div>
+      </div><div class="game-wrap">
+    <canvas id="game" width="720" height="420" aria-label="Lamumu Jump game"></canvas>
   </div>
-  <div class="hud"><div class="score" id="score">0</div></div>
-  <div class="footer">Tap / Click / Space to jump • High Score: <span id="hiscore">0</span>
-    <div class="btnbar">
+
+  <div class="hud">
+    <div class="pill">High: <span id="hiscore">0</span></div>
+    <div class="controls">
       <button class="btn" id="btnStart">Start</button>
-      <button class="btn secondary" id="btnRetry" style="display:none">Retry</button>
-      <button class="btn secondary" id="btnPause" style="display:none">Pause</button>
+      <button class="btn" id="btnPause">Pause</button>
+      <button class="btn primary" id="btnRetry">Retry</button>
     </div>
+  </div>
+  <div class="footer">Tap / Click / Space to jump • Cow moves horizontally toward your tap • Built for quick plays</div>
+</div>
+
+<!-- overlays shown by JS -->
+<div class="overlay" id="overlay"></div>
+
   </div>  <script>
-  (() => {
+  (function(){
+    // Elements
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
     const scoreEl = document.getElementById('score');
     const hiEl = document.getElementById('hiscore');
     const btnStart = document.getElementById('btnStart');
-    const btnRetry = document.getElementById('btnRetry');
     const btnPause = document.getElementById('btnPause');
-
-    const W = canvas.width;
-    const H = canvas.height;
-
-    // World settings
-    const GRAVITY = 0.45;
-    const JUMP_VELOCITY = -7.8;
-    const MAX_FALL = 10;
-    const PLATFORM_GAP_MIN = 48;
-    const PLATFORM_GAP_MAX = 84;
-    const PLATFORM_MIN_W = 70;
-    const PLATFORM_MAX_W = 150;
-
-    // Game state
-    let platforms = [];
-    let clouds = [];
-    let hay = []; // collectible for bonus
-    let state = 'menu'; // 'menu' | 'playing' | 'gameover' | 'paused'
-    let score = 0;
-    let hiscore = parseInt(localStorage.getItem('cowjump_hiscore')||'0',10);
-    hiEl.textContent = hiscore;
-    let speed = 1.6; // vertical scroll speed
-    let tick = 0;
-
-    const cow = {
-      x: W * 0.5,
-      y: H * 0.3,
-      w: 36,
-      h: 28,
-      vx: 0,
-      vy: 0,
-      onGround: false,
-      lastPlatformId: -1,
-    };
-
-    function rand(a,b){ return Math.random()*(b-a)+a; }
-    function irand(a,b){ return Math.floor(rand(a,b)); }
-
-    function resetWorld() {
-      platforms = [];
-      hay = [];
-      clouds = Array.from({length:6}).map(()=>({
-        x: rand(0, W), y: rand(0, H*0.6), w: rand(30, 80), h: rand(10, 22), s: rand(0.1, 0.35)
-      }));
-
-      // baseline platforms filling the screen vertically
-      let y = H - 30;
-      let id = 0;
-      while (y > -H) {
-        const pw = rand(PLATFORM_MIN_W, PLATFORM_MAX_W);
-        const px = rand(10, W - pw - 10);
-        platforms.push({ id: id++, x: px, y, w: pw, h: 10 });
-        if (Math.random() < 0.28) hay.push({ x: px + pw*0.5 - 5, y: y - 20, r: 5, taken: false });
-        y -= rand(PLATFORM_GAP_MIN, PLATFORM_GAP_MAX);
-      }
-
-      cow.x = W*0.5;
-      cow.y = H*0.3;
-      cow.vx = 0; cow.vy = 0;
-      cow.onGround = false;
-      cow.lastPlatformId = -1;
-
-      score = 0; speed = 1.6; tick = 0;
-      scoreEl.textContent = score;
-    }
-
-    function spawnRowAtTop() {
-      const pw = rand(PLATFORM_MIN_W, PLATFORM_MAX_W);
-      const px = rand(10, W - pw - 10);
-      const topY = -rand(PLATFORM_GAP_MIN, PLATFORM_GAP_MAX);
-      const id = platforms.length ? platforms[platforms.length-1].id+1 : 0;
-      platforms.push({ id, x: px, y: topY, w: pw, h: 10 });
-      if (Math.random() < 0.3) hay.push({ x: px + pw*0.5 - 5, y: topY - 20, r: 5, taken: false });
-    }
-
-    function handleInput() {
-      if (cow.onGround) {
-        cow.vy = JUMP_VELOCITY;
-        cow.onGround = false;
-      } else if (cow.vy > JUMP_VELOCITY*0.3) {
-        // small midair boost forgiveness
-        cow.vy += -1.4;
-      }
-    }
-
-    // Controls
-    window.addEventListener('keydown', (e)=>{
-      if (e.code === 'Space' || e.code === 'ArrowUp') {
-        e.preventDefault();
-        if (state === 'menu') start();
-        else if (state === 'gameover') start();
-        else if (state === 'paused') { state = 'playing'; btnPause.textContent='Pause'; return; }
-        handleInput();
-      }
-      if (e.code === 'KeyP') togglePause();
-    });
-    ['pointerdown','touchstart'].forEach(evt=>{
-      window.addEventListener(evt, ()=>{
-        if (state === 'menu') start();
-        else if (state === 'gameover') start();
-        else if (state === 'paused') { state = 'playing'; btnPause.textContent='Pause'; return; }
-        handleInput();
-      });
-    });
-
-    btnStart.addEventListener('click', start);
-    btnRetry.addEventListener('click', start);
-    btnPause.addEventListener('click', togglePause);
-
-    function togglePause(){
-      if (state === 'playing') { state = 'paused'; btnPause.textContent='Resume'; }
-      else if (state === 'paused') { state = 'playing'; btnPause.textContent='Pause'; }
-    }
-
-    function start(){
-      resetWorld();
-      state = 'playing';
-      btnStart.style.display = 'none';
-      btnRetry.style.display = 'none';
-      btnPause.style.display = 'inline-block';
-    }
-
-    function gameOver(){
-      state = 'gameover';
-      btnRetry.style.display = 'inline-block';
-      btnPause.style.display = 'none';
-      if (score > hiscore){
-        hiscore = score; localStorage.setItem('cowjump_hiscore', String(hiscore)); hiEl.textContent = hiscore;
-      }
-    }
-
-    function update(dt){
-      if (state !== 'playing') return;
-      tick++;
-
-      // Difficulty scaling
-      if (score > 0 && score % 20 === 0) speed = 1.6 + Math.min(2.0, score/60);
-
-      // Scroll world downwards
-      platforms.forEach(p => p.y += speed);
-      hay.forEach(h => h.y += speed);
-      clouds.forEach(c => { c.x += c.s; if (c.x - c.w > W) { c.x = -c.w; c.y = rand(0, H*0.6); } });
-
-      // Recycle platforms that go offscreen
-      for (let i=platforms.length-1;i>=0;i--){
-        if (platforms[i].y > H + 20){ platforms.splice(i,1); spawnRowAtTop(); }
-      }
-      // Clear hay that goes offscreen
-      for (let i=hay.length-1;i>=0;i--){ if (hay[i].y > H + 20) hay.splice(i,1); }
-
-      // Physics
-      cow.vy = Math.min(MAX_FALL, cow.vy + GRAVITY);
-      cow.y += cow.vy;
-
-      // Simple left-right drift for feel
-      cow.x += Math.sin(tick/50) * 0.3;
-
-      // Collisions with platforms (only when falling)
-      if (cow.vy >= 0){
-        for (const p of platforms){
-          const withinX = cow.x + cow.w*0.5 > p.x && cow.x - cow.w*0.5 < p.x + p.w;
-          const feetY = cow.y + cow.h*0.5;
-          if (withinX && feetY >= p.y && feetY <= p.y + p.h + Math.max(1, cow.vy)){
-            // Land on platform
-            cow.y = p.y - cow.h*0.5;
-            cow.vy = 0;
-            if (!cow.onGround) {
-              cow.onGround = true;
-              if (cow.lastPlatformId !== p.id){
-                score++;
-                scoreEl.textContent = score;
-                cow.lastPlatformId = p.id;
-              }
-            }
-            break;
-          }
-        }
-      } else {
-        cow.onGround = false;
-      }
-
-      // Collect hay (bonus +2)
-      for (const h of hay){
-        if (!h.taken){
-          const dx = (cow.x) - (h.x);
-          const dy = (cow.y) - (h.y);
-          if (dx*dx + dy*dy < (cow.w*0.35 + h.r)*(cow.w*0.35 + h.r)){
-            h.taken = true; score += 2; scoreEl.textContent = score;
-          }
-        }
-      }
-
-      // Lose if fall off bottom or go above top too far
-      if (cow.y - cow.h*0.5 > H + 10 || cow.y + cow.h*0.5 < -80){ gameOver(); }
-    }
-
-    // Drawing
-    function drawBackground(){
-      // sky gradient handled by CSS; draw ground band subtly
-      ctx.fillStyle = '#d6f8c7';
-      ctx.fillRect(0, H-10, W, 12);
-
-      // clouds
-      clouds.forEach(c=>{
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
-        roundRect(ctx, c.x, c.y, c.w, c.h, 8);
-        ctx.fill();
-      });
-    }
-
-    function drawPlatforms(){
-      for (const p of platforms){
-        const grd = ctx.createLinearGradient(p.x, p.y, p.x, p.y+p.h);
-        grd.addColorStop(0, '#8bd17c');
-        grd.addColorStop(1, '#4caf50');
-        ctx.fillStyle = grd;
-        roundRect(ctx, p.x, p.y, p.w, p.h, 6);
-        ctx.fill();
-
-        // Tiny flowers
-        if (Math.random()<0.02){
-          ctx.fillStyle = '#fff';
-          ctx.fillRect(p.x+irand(4,p.w-4), p.y-2, 2, 2);
-        }
-      }
-    }
-
-    function drawHay(){
-      hay.forEach(h=>{
-        if (h.taken) return;
-        // hay bale
-        ctx.save();
-        ctx.translate(h.x, h.y);
-        ctx.fillStyle = '#f4d06f';
-        roundRect(ctx, -6, -4, 12, 8, 2); ctx.fill();
-        ctx.strokeStyle = '#d4b24a';
-        ctx.lineWidth = 1; ctx.strokeRect(-6, -4, 12, 8);
-        ctx.restore();
-      });
-    }
-
-    function drawCow(){
-      ctx.save();
-      ctx.translate(cow.x, cow.y);
-
-      // subtle bob
-      const bob = Math.sin(tick/10)*1.0;
-      ctx.translate(0, bob);
-
-      // Shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.15)';
-      ellipse(ctx, 0, cow.h*0.55, cow.w*0.6, 4); ctx.fill();
-
-      // Body
-      ctx.fillStyle = '#ffffff';
-      roundRect(ctx, -cow.w*0.5, -cow.h*0.4, cow.w*0.9, cow.h*0.65, 6); ctx.fill();
-
-      // Spots
-      ctx.fillStyle = '#2d2a2a';
-      ellipse(ctx, -8, -2, 8, 6); ctx.fill();
-      ellipse(ctx, 6, 4, 7, 5); ctx.fill();
-
-      // Head
-      roundRect(ctx, cow.w*0.2, -cow.h*0.5, 16, 14, 4); ctx.fillStyle = '#ffffff'; ctx.fill();
-
-      // Ears
-      ctx.fillStyle = '#ffffff';
-      roundRect(ctx, cow.w*0.2-2, -cow.h*0.5-6, 6, 8, 2); ctx.fill();
-      roundRect(ctx, cow.w*0.2+12, -cow.h*0.5-6, 6, 8, 2); ctx.fill();
-
-      // Horns
-      ctx.fillStyle = '#e5d1a4';
-      roundRect(ctx, cow.w*0.2, -cow.h*0.5-8, 5, 6, 2); ctx.fill();
-      roundRect(ctx, cow.w*0.2+11, -cow.h*0.5-8, 5, 6, 2); ctx.fill();
-
-      // Eyes
-      ctx.fillStyle = '#000';
-      ellipse(ctx, cow.w*0.2+5, -cow.h*0.5+5, 1.5, 1.5); ctx.fill();
-      ellipse(ctx, cow.w*0.2+11, -cow.h*0.5+5, 1.5, 1.5); ctx.fill();
-
-      // Muzzle
-      ctx.fillStyle = '#ffb4b4';
-      roundRect(ctx, cow.w*0.2+2, -cow.h*0.5+7, 14, 7, 3); ctx.fill();
-      ctx.fillStyle = '#7a4a4a';
-      ellipse(ctx, cow.w*0.2+6, -cow.h*0.5+10, 0.9, 0.9); ctx.fill();
-      ellipse(ctx, cow.w*0.2+12, -cow.h*0.5+10, 0.9, 0.9); ctx.fill();
-
-      // Legs (simple)
-      ctx.fillStyle = '#ffffff';
-      roundRect(ctx, -cow.w*0.25, cow.h*0.2, 6, 10, 2); ctx.fill();
-      roundRect(ctx, -cow.w*0.05, cow.h*0.2, 6, 10, 2); ctx.fill();
-      roundRect(ctx, cow.w*0.15, cow.h*0.2, 6, 10, 2); ctx.fill();
-
-      // Tail
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(-cow.w*0.45, -2); ctx.quadraticCurveTo(-cow.w*0.6, 0, -cow.w*0.55, 8); ctx.stroke();
-      ctx.fillStyle = '#2d2a2a'; ellipse(ctx, -cow.w*0.55, 8, 2, 2); ctx.fill();
-
-      ctx.restore();
-    }
-
-    function roundRect(ctx, x, y, w, h, r){
-      ctx.beginPath();
-      ctx.moveTo(x+r, y);
-      ctx.arcTo(x+w, y, x+w, y+h, r);
-      ctx.arcTo(x+w, y+h, x, y+h, r);
-      ctx.arcTo(x, y+h, x, y, r);
-      ctx.arcTo(x, y, x+w, y, r);
-      ctx.closePath();
-    }
-    function ellipse(ctx, x, y, rx, ry){
-      ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI*2); ctx.closePath();
-    }
-
-    function drawUI(){
-      if (state === 'menu') {
-        drawOverlay('Cow Jump', 'Tap to Jump. Reach new platforms to score!');
-      } else if (state === 'paused') {
-        drawOverlay('Paused', 'Tap Resume or press P.');
-      } else if (state === 'gameover') {
-        drawOverlay('Game Over', `Score: ${score}  •  High: ${hiscore}`);
-      }
-    }
-
-    function drawOverlay(title, subtitle){
-      ctx.save();
-      ctx.fillStyle = 'rgba(255,255,255,0.75)';
-      ctx.fillRect(16, 30, W-32, 100);
-      ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 28px system-ui, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(title, W/2, 72);
-      ctx.font = '16px system-ui, sans-serif';
-      ctx.fillText(subtitle, W/2, 100);
-      ctx.restore();
-    }
-
-    let last = 0;
-    function loop(ts){
-      requestAnimationFrame(loop);
-      const dt = (ts - last)/16.67; last = ts;
-      update(dt);
-
-      ctx.clearRect(0,0,W,H);
-      drawBackground();
-      drawPlatforms();
-      drawHay();
-      drawCow();
-      drawUI();
-    }
-
-    resetWorld();
-    requestAnimationFrame(loop);
-  })();
-  </script></body>
-</html>      onGround: false,
-      lastPlatformId: -1,
-    };
-
-    function rand(a,b){ return Math.random()*(b-a)+a; }
-    function irand(a,b){ return Math.floor(rand(a,b)); }
-
-    function resetWorld() {
-      platforms = [];
-      hay = [];
-      clouds = Array.from({length:6}).map(()=>({
-        x: rand(0, W), y: rand(0, H*0.6), w: rand(30, 80), h: rand(10, 22), s: rand(0.1, 0.35)
-      }));
-
-      // baseline platforms filling the screen vertically
-      let y = H - 30;
-      let id = 0;
-      while (y > -H) {
-        const pw = rand(PLATFORM_MIN_W, PLATFORM_MAX_W);
-        const px = rand(10, W - pw - 10);
-        platforms.push({ id: id++, x: px, y, w: pw, h: 10 });
-        if (Math.random() < 0.28) hay.push({ x: px + pw*0.5 - 5, y: y - 20, r: 5, taken: false });
-        y -= rand(PLATFORM_GAP_MIN, PLATFORM_GAP_MAX);
-      }
-
-      cow.x = W*0.5;
-      cow.y = H*0.3;
-      cow.vx = 0; cow.vy = 0;
-      cow.onGround = false;
-      cow.lastPlatformId = -1;
-
-      score = 0; speed = 1.6; tick = 0;
-      scoreEl.textContent = score;
-    }
-
-    function spawnRowAtTop() {
-      const pw = rand(PLATFORM_MIN_W, PLATFORM_MAX_W);
-      const px = rand(10, W - pw - 10);
-      const topY = -rand(PLATFORM_GAP_MIN, PLATFORM_GAP_MAX);
-      const id = platforms.length ? platforms[platforms.length-1].id+1 : 0;
-      platforms.push({ id, x: px, y: topY, w: pw, h: 10 });
-      if (Math.random() < 0.3) hay.push({ x: px + pw*0.5 - 5, y: topY - 20, r: 5, taken: false });
-    }
-
-    function handleInput() {
-      if (cow.onGround) {
-        cow.vy = JUMP_VELOCITY;
-        cow.onGround = false;
-      } else if (cow.vy > JUMP_VELOCITY*0.3) {
-        // small midair boost forgiveness
-        cow.vy += -1.4;
-      }
-    }
-
-    // Controls
-    window.addEventListener('keydown', (e)=>{
-      if (e.code === 'Space' || e.code === 'ArrowUp') {
-        e.preventDefault();
-        if (state === 'menu') start();
-        else if (state === 'gameover') start();
-        else if (state === 'paused') { state = 'playing'; btnPause.textContent='Pause'; return; }
-        handleInput();
-      }
-      if (e.code === 'KeyP') togglePause();
-    });
-    ['pointerdown','touchstart'].forEach(evt=>{
-      window.addEventListener(evt, ()=>{
-        if (state === 'menu') start();
-        else if (state === 'gameover') start();
-        else if (state === 'paused') { state = 'playing'; btnPause.textContent='Pause'; return; }
-        handleInput();
-      });
-    });
-
-    btnStart.addEventListener('click', start);
-    btnRetry.addEventListener('click', start);
-    btnPause.addEventListener('click', togglePause);
-
-    function togglePause(){
-      if (state === 'playing') { state = 'paused'; btnPause.textContent='Resume'; }
-      else if (state === 'paused') { state = 'playing'; btnPause.textContent='Pause'; }
-    }
-
-    function start(){
-      resetWorld();
-      state = 'playing';
-      btnStart.style.display = 'none';
-      btnRetry.style.display = 'none';
-      btnPause.style.display = 'inline-block';
-    }
-
-    function gameOver(){
-      state = 'gameover';
-      btnRetry.style.display = 'inline-block';
-      btnPause.style.display = 'none';
-      if (score > hiscore){
-        hiscore = score; localStorage.setItem('cowjump_hiscore', String(hiscore)); hiEl.textContent = hiscore;
-      }
-    }
-
-    function update(dt){
-      if (state !== 'playing') return;
-      tick++;
-
-      // Difficulty scaling
-      if (score > 0 && score % 20 === 0) speed = 1.6 + Math.min(2.0, score/60);
-
-      // Scroll world downwards
-      platforms.forEach(p => p.y += speed);
-      hay.forEach(h => h.y += speed);
-      clouds.forEach(c => { c.x += c.s; if (c.x - c.w > W) { c.x = -c.w; c.y = rand(0, H*0.6); } });
-
-      // Recycle platforms that go offscreen
-      for (let i=platforms.length-1;i>=0;i--){
-        if (platforms[i].y > H + 20){ platforms.splice(i,1); spawnRowAtTop(); }
-      }
-      // Clear hay that goes offscreen
-      for (let i=hay.length-1;i>=0;i--){ if (hay[i].y > H + 20) hay.splice(i,1); }
-
-      // Physics
-      cow.vy = Math.min(MAX_FALL, cow.vy + GRAVITY);
-      cow.y += cow.vy;
-
-      // Simple left-right drift for feel
-      cow.x += Math.sin(tick/50) * 0.3;
-
-      // Collisions with platforms (only when falling)
-      if (cow.vy >= 0){
-        for (const p of platforms){
-          const withinX = cow.x + cow.w*0.5 > p.x && cow.x - cow.w*0.5 < p.x + p.w;
-          const feetY = cow.y + cow.h*0.5;
-          if (withinX && feetY >= p.y && feetY <= p.y + p.h + Math.max(1, cow.vy)){
-            // Land on platform
-            cow.y = p.y - cow.h*0.5;
-            cow.vy = 0;
-            if (!cow.onGround) {
-              cow.onGround = true;
-              if (cow.lastPlatformId !== p.id){
-                score++;
-                scoreEl.textContent = score;
-                cow.lastPlatformId = p.id;
-              }
-            }
-            break;
-          }
-        }
-      } else {
-        cow.onGround = false;
-      }
-
-      // Collect hay (bonus +2)
-      for (const h of hay){
-        if (!h.taken){
-          const dx = (cow.x) - (h.x);
-          const dy = (cow.y) - (h.y);
-          if (dx*dx + dy*dy < (cow.w*0.35 + h.r)*(cow.w*0.35 + h.r)){
-            h.taken = true; score += 2; scoreEl.textContent = score;
-          }
-        }
-      }
-
-      // Lose if fall off bottom or go above top too far
-      if (cow.y - cow.h*0.5 > H + 10 || cow.y + cow.h*0.5 < -80){ gameOver(); }
-    }
-
-    // Drawing
-    function drawBackground(){
-      // sky gradient handled by CSS; draw ground band subtly
-      ctx.fillStyle = '#d6f8c7';
-      ctx.fillRect(0, H-10, W, 12);
-
-      // clouds
-      clouds.forEach(c=>{
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
-        roundRect(ctx, c.x, c.y, c.w, c.h, 8);
-        ctx.fill();
-      });
-    }
-
-    function drawPlatforms(){
-      for (const p of platforms){
-        const grd = ctx.createLinearGradient(p.x, p.y, p.x, p.y+p.h);
-        grd.addColorStop(0, '#8bd17c');
-        grd.addColorStop(1, '#4caf50');
-        ctx.fillStyle = grd;
-        roundRect(ctx, p.x, p.y, p.w, p.h, 6);
-        ctx.fill();
-
-        // Tiny flowers
-        if (Math.random()<0.02){
-          ctx.fillStyle = '#fff';
-          ctx.fillRect(p.x+irand(4,p.w-4), p.y-2, 2, 2);
-        }
-      }
-    }
-
-    function drawHay(){
-      hay.forEach(h=>{
-        if (h.taken) return;
-        // hay bale
-        ctx.save();
-        ctx.translate(h.x, h.y);
-        ctx.fillStyle = '#f4d06f';
-        roundRect(ctx, -6, -4, 12, 8, 2); ctx.fill();
-        ctx.strokeStyle = '#d4b24a';
-        ctx.lineWidth = 1; ctx.strokeRect(-6, -4, 12, 8);
-        ctx.restore();
-      });
-    }
-
-    function drawCow(){
-      ctx.save();
-      ctx.translate(cow.x, cow.y);
-
-      // subtle bob
-      const bob = Math.sin(tick/10)*1.0;
-      ctx.translate(0, bob);
-
-      // Shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.15)';
-      ellipse(ctx, 0, cow.h*0.55, cow.w*0.6, 4); ctx.fill();
-
-      // Body
-      ctx.fillStyle = '#ffffff';
-      roundRect(ctx, -cow.w*0.5, -cow.h*0.4, cow.w*0.9, cow.h*0.65, 6); ctx.fill();
-
-      // Spots
-      ctx.fillStyle = '#2d2a2a';
-      ellipse(ctx, -8, -2, 8, 6); ctx.fill();
-      ellipse(ctx, 6, 4, 7, 5); ctx.fill();
-
-      // Head
-      roundRect(ctx, cow.w*0.2, -cow.h*0.5, 16, 14, 4); ctx.fillStyle = '#ffffff'; ctx.fill();
-
-      // Ears
-      ctx.fillStyle = '#ffffff';
-      roundRect(ctx, cow.w*0.2-2, -cow.h*0.5-6, 6, 8, 2); ctx.fill();
-      roundRect(ctx, cow.w*0.2+12, -cow.h*0.5-6, 6, 8, 2); ctx.fill();
-
-      // Horns
-      ctx.fillStyle = '#e5d1a4';
-      roundRect(ctx, cow.w*0.2, -cow.h*0.5-8, 5, 6, 2); ctx.fill();
-      roundRect(ctx, cow.w*0.2+11, -cow.h*0.5-8, 5, 6, 2); ctx.fill();
-
-      // Eyes
-      ctx.fillStyle = '#000';
-      ellipse(ctx, cow.w*0.2+5, -cow.h*0.5+5, 1.5, 1.5); ctx.fill();
-      ellipse(ctx, cow.w*0.2+11, -cow.h*0.5+5, 1.5, 1.5); ctx.fill();
-
-      // Muzzle
-      ctx.fillStyle = '#ffb4b4';
-      roundRect(ctx, cow.w*0.2+2, -cow.h*0.5+7, 14, 7, 3); ctx.fill();
-      ctx.fillStyle = '#7a4a4a';
-      ellipse(ctx, cow.w*0.2+6, -cow.h*0.5+10, 0.9, 0.9); ctx.fill();
-      ellipse(ctx, cow.w*0.2+12, -cow.h*0.5+10, 0.9, 0.9); ctx.fill();
-
-      // Legs (simple)
-      ctx.fillStyle = '#ffffff';
-      roundRect(ctx, -cow.w*0.25, cow.h*0.2, 6, 10, 2); ctx.fill();
-      roundRect(ctx, -cow.w*0.05, cow.h*0.2, 6, 10, 2); ctx.fill();
-      roundRect(ctx, cow.w*0.15, cow.h*0.2, 6, 10, 2); ctx.fill();
-
-      // Tail
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(-cow.w*0.45, -2); ctx.quadraticCurveTo(-cow.w*0.6, 0, -cow.w*0.55, 8); ctx.stroke();
-      ctx.fillStyle = '#2d2a2a'; ellipse(ctx, -cow.w*0.55, 8, 2, 2); ctx.fill();
-
-      ctx.restore();
-    }
-
-    function roundRect(ctx, x, y, w, h, r){
-      ctx.beginPath();
-      ctx.moveTo(x+r, y);
-      ctx.arcTo(x+w, y, x+w, y+h, r);
-      ctx.arcTo(x+w, y+h, x, y+h, r);
-      ctx.arcTo(x, y+h, x, y, r);
-      ctx.arcTo(x, y, x+w, y, r);
-      ctx.closePath();
-    }
-    function ellipse(ctx, x, y, rx, ry){
-      ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI*2); ctx.closePath();
-    }
-
-    function drawUI(){
-      if (state === 'menu') {
-        drawOverlay('Cow Jump', 'Tap to Jump. Reach new platforms to score!');
-      } else if (state === 'paused') {
-        drawOverlay('Paused', 'Tap Resume or press P.');
-      } else if (state === 'gameover') {
-        drawOverlay('Game Over', `Score: ${score}  •  High: ${hiscore}`);
-      }
-    }
-
-    function drawOverlay(title, subtitle){
-      ctx.save();
-      ctx.fillStyle = 'rgba(255,255,255,0.75)';
-      ctx.fillRect(16, 30, W-32, 100);
-      ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 28px system-ui, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(title, W/2, 72);
-      ctx.font = '16px system-ui, sans-serif';
-      ctx.fillText(subtitle, W/2, 100);
-      ctx.restore();
-    }
-
-    let last = 0;
-    function loop(ts){
-      requestAnimationFrame(loop);
-      const dt = (ts - last)/16.67; last = ts;
-      update(dt);
-
-      ctx.clearRect(0,0,W,H);
-      drawBackground();
-      drawPlatforms();
-      drawHay();
-      drawCow();
-      drawUI();
-    }
-
-    resetWorld();
-    requestAnimationFrame(loop);
-  })();
-  </script></body>
-  </html><!DOCTYPE html><html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <title>Cow Jump 🐄</title>
-  <style>
-    :root {
-      --bg1: #87CEEB; /* sky */
-      --bg2: #E0F7FA; /* horizon */
-      --ground: #78c850;
-      --ui: #0f172a;
-      --white: #ffffff;
-      --shadow: rgba(0,0,0,.15);
-      --accent: #ff7a59;
-    }
-    html, body {
-      height: 100%;
-      margin: 0;
-      background: linear-gradient(180deg, var(--bg1), var(--bg2));
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-      color: var(--ui);
-    }
-    .wrap {
-      display: grid;
-      place-items: center;
-      height: 100%;
-      padding: 12px;
-      box-sizing: border-box;
-    }
-    canvas {
-      width: min(96vw, 420px);
-      height: calc(min(96vw, 420px) * 16 / 9);
-      max-height: 92vh;
-      image-rendering: pixelated;
-      border-radius: 16px;
-      box-shadow: 0 20px 40px var(--shadow);
-      background: linear-gradient(180deg, var(--bg1), var(--bg2));
-      display: block;
-    }
-    .hud {
-      position: fixed;
-      top: 12px; left: 0; right: 0;
-      display: grid; place-items: center;
-      pointer-events: none;
-      font-weight: 700;
-      text-shadow: 0 2px 8px rgba(0,0,0,.25);
-    }
-    .hud .score {
-      background: rgba(255,255,255,.6);
-      padding: 6px 12px;
-      border-radius: 999px;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      box-shadow: 0 6px 20px var(--shadow);
-    }
-    .footer {
-      position: fixed; bottom: 10px; left: 0; right: 0;
-      text-align: center; font-size: 12px; opacity: .7;
-      user-select: none;
-    }
-    .btnbar {
-      margin-top: 8px; display: flex; gap: 8px; justify-content: center;
-    }
-    .btn {
-      appearance: none; border: 0; border-radius: 12px; padding: 10px 14px;
-      font-weight: 700; background: var(--accent); color: white; box-shadow: 0 6px 16px rgba(255,122,89,.35);
-      cursor: pointer;
-    }
-    .btn.secondary { background: #111827; box-shadow: 0 6px 16px rgba(0,0,0,.25); }
-    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; clip-path: inset(50%); }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <canvas id="game" width="480" height="270" aria-label="Cow Jump game"></canvas>
-  </div>
-  <div class="hud"><div class="score" id="score">0</div></div>
-  <div class="footer">Tap / Click / Space to jump • High Score: <span id="hiscore">0</span>
-    <div class="btnbar">
-      <button class="btn" id="btnStart">Start</button>
-      <button class="btn secondary" id="btnRetry" style="display:none">Retry</button>
-      <button class="btn secondary" id="btnPause" style="display:none">Pause</button>
-    </div>
-  </div>  <script>
-  (() => {
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-    const scoreEl = document.getElementById('score');
-    const hiEl = document.getElementById('hiscore');
-    const btnStart = document.getElementById('btnStart');
     const btnRetry = document.getElementById('btnRetry');
-    const btnPause = document.getElementById('btnPause');
+    const overlay = document.getElementById('overlay');
 
-    const W = canvas.width;
-    const H = canvas.height;
+    // HiDPI
+    function rescaleCanvas(){
+      const ratio = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      canvas.width = Math.floor(w * ratio);
+      canvas.height = Math.floor(h * ratio);
+      ctx.setTransform(ratio,0,0,ratio,0,0);
+    }
+    window.addEventListener('resize', rescaleCanvas);
+    rescaleCanvas();
 
-    // World settings
-    const GRAVITY = 0.45;
-    const JUMP_VELOCITY = -7.8;
-    const MAX_FALL = 10;
-    const PLATFORM_GAP_MIN = 48;
-    const PLATFORM_GAP_MAX = 84;
-    const PLATFORM_MIN_W = 70;
+    // Game constants
+    const GRAVITY = 0.5;
+    const JUMP_V = -9.2;
+    const MAX_FALL = 12;
+    const PLATFORM_MIN_W = 80;
     const PLATFORM_MAX_W = 150;
+    const PLATFORM_GAP_MIN = 48;
+    const PLATFORM_GAP_MAX = 88;
 
-    // Game state
-    let platforms = [];
-    let clouds = [];
-    let hay = []; // collectible for bonus
-    let state = 'menu'; // 'menu' | 'playing' | 'gameover' | 'paused'
-    let score = 0;
-    let hiscore = parseInt(localStorage.getItem('cowjump_hiscore')||'0',10);
-    hiEl.textContent = hiscore;
-    let speed = 1.6; // vertical scroll speed
-    let tick = 0;
+    // State
+    let state = 'menu'; // menu | playing | paused | gameover
+    let platforms = [], hay = [], clouds = [];
+    let score = 0; let hiscore = parseInt(localStorage.getItem('lamumu_hiscore')||0,10); hiEl.textContent = hiscore;
+    let speed = 1.6; let tick = 0;
+    let targetX = null; // where user tapped (horizontal target)
 
-    const cow = {
-      x: W * 0.5,
-      y: H * 0.3,
-      w: 36,
-      h: 28,
-      vx: 0,
-      vy: 0,
-      onGround: false,
-      lastPlatformId: -1,
-    };
+    const cow = { x: 200, y:120, w:48, h:36, vx:0, vy:0, onGround:false, lastId:-1 };
 
-    function rand(a,b){ return Math.random()*(b-a)+a; }
-    function irand(a,b){ return Math.floor(rand(a,b)); }
+    // Audio - WebAudio synth for small sounds
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const audio = AudioCtx ? new AudioCtx() : null;
+    function playTone(freq, time=0.06, type='sine', gain=0.14){
+      if(!audio) return;
+      const now = audio.currentTime;
+      const o = audio.createOscillator();
+      const g = audio.createGain();
+      o.type = type; o.frequency.value = freq;
+      g.gain.value = gain;
+      o.connect(g); g.connect(audio.destination);
+      o.start(now); g.gain.linearRampToValueAtTime(0.0001, now + time);
+      o.stop(now + time + 0.02);
+    }
+    function playJumpSound(){ playTone(420,0.08,'sine',0.12); }
+    function playLandSound(){ playTone(180,0.12,'triangle',0.16); }
+    function playCollect(){ playTone(880,0.08,'sawtooth',0.12); }
 
-    function resetWorld() {
-      platforms = [];
-      hay = [];
-      clouds = Array.from({length:6}).map(()=>({
-        x: rand(0, W), y: rand(0, H*0.6), w: rand(30, 80), h: rand(10, 22), s: rand(0.1, 0.35)
-      }));
+    function rand(a,b){return Math.random()*(b-a)+a}
+    function irand(a,b){return Math.floor(rand(a,b))}
 
-      // baseline platforms filling the screen vertically
-      let y = H - 30;
-      let id = 0;
-      while (y > -H) {
+    function resetWorld(){
+      platforms = []; hay = []; clouds = [];
+      // clouds
+      for(let i=0;i<6;i++) clouds.push({x:rand(0,canvas.width), y:rand(10,canvas.height*0.4), w:rand(40,110), h:rand(14,28), s:rand(0.2,0.6)});
+
+      // fill platforms
+      let y = canvas.height - 40; let id=0;
+      while(y > -canvas.height){
         const pw = rand(PLATFORM_MIN_W, PLATFORM_MAX_W);
-        const px = rand(10, W - pw - 10);
-        platforms.push({ id: id++, x: px, y, w: pw, h: 10 });
-        if (Math.random() < 0.28) hay.push({ x: px + pw*0.5 - 5, y: y - 20, r: 5, taken: false });
+        const px = rand(12, canvas.width - pw - 12);
+        platforms.push({id:id++, x:px, y, w:pw, h:12});
+        if(Math.random()<0.28) hay.push({x:px + pw*0.5 - 7, y: y-22, r:6, taken:false});
         y -= rand(PLATFORM_GAP_MIN, PLATFORM_GAP_MAX);
       }
-
-      cow.x = W*0.5;
-      cow.y = H*0.3;
-      cow.vx = 0; cow.vy = 0;
-      cow.onGround = false;
-      cow.lastPlatformId = -1;
-
-      score = 0; speed = 1.6; tick = 0;
-      scoreEl.textContent = score;
+      cow.x = canvas.width * 0.5; cow.y = canvas.height * 0.35; cow.vx=0; cow.vy=0; cow.onGround=false; cow.lastId=-1;
+      score = 0; speed = 1.6; tick=0; targetX=null; updateScore();
     }
 
-    function spawnRowAtTop() {
+    function spawnRowAtTop(){
       const pw = rand(PLATFORM_MIN_W, PLATFORM_MAX_W);
-      const px = rand(10, W - pw - 10);
+      const px = rand(12, canvas.width - pw - 12);
       const topY = -rand(PLATFORM_GAP_MIN, PLATFORM_GAP_MAX);
-      const id = platforms.length ? platforms[platforms.length-1].id+1 : 0;
-      platforms.push({ id, x: px, y: topY, w: pw, h: 10 });
-      if (Math.random() < 0.3) hay.push({ x: px + pw*0.5 - 5, y: topY - 20, r: 5, taken: false });
+      const id = platforms.length ? platforms[platforms.length-1].id + 1 : 0;
+      platforms.push({id, x:px, y:topY, w:pw, h:12});
+      if(Math.random()<0.3) hay.push({x:px + pw*0.5 - 7, y: topY - 22, r:6, taken:false});
     }
 
-    function handleInput() {
-      if (cow.onGround) {
-        cow.vy = JUMP_VELOCITY;
-        cow.onGround = false;
-      } else if (cow.vy > JUMP_VELOCITY*0.3) {
-        // small midair boost forgiveness
-        cow.vy += -1.4;
-      }
+    // Input — on tap/click player jumps and cow moves horizontally toward tap
+    function handleTap(clientX){
+      const rect = canvas.getBoundingClientRect();
+      const x = (clientX - rect.left);
+      // set horizontal target
+      targetX = Math.max(20, Math.min(canvas.width - 20, x));
+      // jump
+      if(cow.onGround) { cow.vy = JUMP_V; cow.onGround=false; playJumpSound(); }
+      else if(cow.vy > JUMP_V*0.4) { cow.vy += -1.6; playJumpSound(); }
     }
 
-    // Controls
-    window.addEventListener('keydown', (e)=>{
-      if (e.code === 'Space' || e.code === 'ArrowUp') {
-        e.preventDefault();
-        if (state === 'menu') start();
-        else if (state === 'gameover') start();
-        else if (state === 'paused') { state = 'playing'; btnPause.textContent='Pause'; return; }
-        handleInput();
-      }
-      if (e.code === 'KeyP') togglePause();
+    // event listeners
+    window.addEventListener('pointerdown', (e)=>{
+      e.preventDefault();
+      if(state === 'menu') start();
+      else if(state === 'gameover') start();
+      else if(state === 'paused') { state='playing'; btnPause.textContent='Pause'; return; }
+      handleTap(e.clientX);
     });
-    ['pointerdown','touchstart'].forEach(evt=>{
-      window.addEventListener(evt, ()=>{
-        if (state === 'menu') start();
-        else if (state === 'gameover') start();
-        else if (state === 'paused') { state = 'playing'; btnPause.textContent='Pause'; return; }
-        handleInput();
-      });
+    window.addEventListener('keydown', (e)=>{
+      if(e.code==='Space' || e.code==='ArrowUp'){ e.preventDefault(); if(state==='menu') start(); else if(state==='gameover') start(); handleTap(window.innerWidth/2); }
+      if(e.code==='KeyP'){ togglePause(); }
     });
 
     btnStart.addEventListener('click', start);
     btnRetry.addEventListener('click', start);
     btnPause.addEventListener('click', togglePause);
 
-    function togglePause(){
-      if (state === 'playing') { state = 'paused'; btnPause.textContent='Resume'; }
-      else if (state === 'paused') { state = 'playing'; btnPause.textContent='Pause'; }
-    }
+    function togglePause(){ if(state==='playing'){ state='paused'; btnPause.textContent='Resume'; showOverlay('Paused','Press Resume or tap the canvas to continue'); } else if(state==='paused'){ state='playing'; btnPause.textContent='Pause'; hideOverlay(); } }
 
-    function start(){
-      resetWorld();
-      state = 'playing';
-      btnStart.style.display = 'none';
-      btnRetry.style.display = 'none';
-      btnPause.style.display = 'inline-block';
-    }
+    function start(){ resetWorld(); state='playing'; hideOverlay(); }
 
-    function gameOver(){
-      state = 'gameover';
-      btnRetry.style.display = 'inline-block';
-      btnPause.style.display = 'none';
-      if (score > hiscore){
-        hiscore = score; localStorage.setItem('cowjump_hiscore', String(hiscore)); hiEl.textContent = hiscore;
-      }
-    }
+    function gameOver(){ state='gameover'; showOverlay('Game Over', `Score: ${score} • High: ${hiscore}`); if(score>hiscore){ hiscore = score; localStorage.setItem('lamumu_hiscore', String(hiscore)); hiEl.textContent = hiscore; } }
 
-    function update(dt){
-      if (state !== 'playing') return;
-      tick++;
+    function showOverlay(title, text){ overlay.innerHTML = `<div class="message"><h2>${title}</h2><div class="small">${text}</div></div>`; overlay.style.pointerEvents='auto'; }
+    function hideOverlay(){ overlay.innerHTML=''; overlay.style.pointerEvents='none'; }
 
-      // Difficulty scaling
-      if (score > 0 && score % 20 === 0) speed = 1.6 + Math.min(2.0, score/60);
+    function updateScore(){ scoreEl.textContent = score; }
 
-      // Scroll world downwards
-      platforms.forEach(p => p.y += speed);
-      hay.forEach(h => h.y += speed);
-      clouds.forEach(c => { c.x += c.s; if (c.x - c.w > W) { c.x = -c.w; c.y = rand(0, H*0.6); } });
+    function update(dt){ if(state!=='playing') return; tick++;
+      // difficulty
+      if(score>0 && score%20 === 0) speed = 1.6 + Math.min(2.2, score/60);
 
-      // Recycle platforms that go offscreen
-      for (let i=platforms.length-1;i>=0;i--){
-        if (platforms[i].y > H + 20){ platforms.splice(i,1); spawnRowAtTop(); }
-      }
-      // Clear hay that goes offscreen
-      for (let i=hay.length-1;i>=0;i--){ if (hay[i].y > H + 20) hay.splice(i,1); }
+      // move environment
+      platforms.forEach(p=>p.y += speed);
+      hay.forEach(h=>h.y += speed);
+      clouds.forEach(c=>{ c.x += c.s; if(c.x - c.w > canvas.width) c.x = -c.w; });
 
-      // Physics
+      // recycle platforms
+      for(let i=platforms.length-1;i>=0;i--){ if(platforms[i].y > canvas.height + 30){ platforms.splice(i,1); spawnRowAtTop(); } }
+      for(let i=hay.length-1;i>=0;i--){ if(hay[i].y > canvas.height + 30) hay.splice(i,1); }
+
+      // physics
       cow.vy = Math.min(MAX_FALL, cow.vy + GRAVITY);
       cow.y += cow.vy;
 
-      // Simple left-right drift for feel
-      cow.x += Math.sin(tick/50) * 0.3;
+      // horizontal movement toward targetX with easing
+      if(targetX !== null){ const dx = targetX - cow.x; cow.vx = dx * 0.12; cow.x += cow.vx; if(Math.abs(dx) < 2) { cow.vx = 0; targetX = null; } }
+      // subtle drift
+      cow.x += Math.sin(tick/60) * 0.2;
 
-      // Collisions with platforms (only when falling)
-      if (cow.vy >= 0){
-        for (const p of platforms){
-          const withinX = cow.x + cow.w*0.5 > p.x && cow.x - cow.w*0.5 < p.x + p.w;
+      // platform collision when falling
+      if(cow.vy >= 0){
+        for(const p of platforms){
+          const withinX = cow.x + cow.w*0.4 > p.x && cow.x - cow.w*0.4 < p.x + p.w;
           const feetY = cow.y + cow.h*0.5;
-          if (withinX && feetY >= p.y && feetY <= p.y + p.h + Math.max(1, cow.vy)){
-            // Land on platform
-            cow.y = p.y - cow.h*0.5;
-            cow.vy = 0;
-            if (!cow.onGround) {
-              cow.onGround = true;
-              if (cow.lastPlatformId !== p.id){
-                score++;
-                scoreEl.textContent = score;
-                cow.lastPlatformId = p.id;
-              }
-            }
-            break;
+          if(withinX && feetY >= p.y && feetY <= p.y + p.h + Math.max(1, cow.vy)){
+            cow.y = p.y - cow.h*0.5; cow.vy = 0; if(!cow.onGround){ cow.onGround = true; if(cow.lastId !== p.id){ score++; updateScore(); cow.lastId = p.id; playLandSound(); } } break;
           }
         }
-      } else {
-        cow.onGround = false;
-      }
+      } else { cow.onGround = false; }
 
-      // Collect hay (bonus +2)
-      for (const h of hay){
-        if (!h.taken){
-          const dx = (cow.x) - (h.x);
-          const dy = (cow.y) - (h.y);
-          if (dx*dx + dy*dy < (cow.w*0.35 + h.r)*(cow.w*0.35 + h.r)){
-            h.taken = true; score += 2; scoreEl.textContent = score;
-          }
-        }
-      }
+      // collect hay
+      for(const h of hay){ if(!h.taken){ const dx = cow.x - h.x; const dy = cow.y - h.y; if(dx*dx + dy*dy < (cow.w*0.35 + h.r)*(cow.w*0.35 + h.r)){ h.taken = true; score += 2; updateScore(); playCollect(); } } }
 
-      // Lose if fall off bottom or go above top too far
-      if (cow.y - cow.h*0.5 > H + 10 || cow.y + cow.h*0.5 < -80){ gameOver(); }
+      // lose if fall below or go too high
+      if(cow.y - cow.h*0.5 > canvas.height + 12 || cow.y + cow.h*0.5 < -100) { gameOver(); }
     }
 
-    // Drawing
-    function drawBackground(){
-      // sky gradient handled by CSS; draw ground band subtly
-      ctx.fillStyle = '#d6f8c7';
-      ctx.fillRect(0, H-10, W, 12);
+    // Drawing helpers
+    function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+    function ellipse(ctx,x,y,rx,ry){ ctx.beginPath(); ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2); ctx.closePath(); }
+
+    function draw(){
+      // clear
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      // subtle background
+      const g = ctx.createLinearGradient(0,0,0,canvas.height); g.addColorStop(0,'#e7fbff'); g.addColorStop(0.35,'#dff6ff'); g.addColorStop(1,'#bfe9ff'); ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
 
       // clouds
-      clouds.forEach(c=>{
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
-        roundRect(ctx, c.x, c.y, c.w, c.h, 8);
-        ctx.fill();
+      clouds.forEach(c=>{ ctx.fillStyle='rgba(255,255,255,0.9)'; roundRect(ctx,c.x,c.y,c.w,c.h,12); ctx.fill(); });
+
+      // platforms
+      platforms.forEach(p=>{
+        const grad = ctx.createLinearGradient(p.x,p.y,p.x,p.y+p.h); grad.addColorStop(0,'#7bd389'); grad.addColorStop(1,'#4caf50'); ctx.fillStyle = grad; roundRect(ctx,p.x,p.y,p.w,p.h,8); ctx.fill();
       });
-    }
 
-    function drawPlatforms(){
-      for (const p of platforms){
-        const grd = ctx.createLinearGradient(p.x, p.y, p.x, p.y+p.h);
-        grd.addColorStop(0, '#8bd17c');
-        grd.addColorStop(1, '#4caf50');
-        ctx.fillStyle = grd;
-        roundRect(ctx, p.x, p.y, p.w, p.h, 6);
-        ctx.fill();
+      // hay
+      hay.forEach(h=>{ if(h.taken) return; ctx.save(); ctx.translate(h.x,h.y); roundRect(ctx,-7,-6,14,12,3); ctx.fillStyle='#f4d06f'; ctx.fill(); ctx.restore(); });
 
-        // Tiny flowers
-        if (Math.random()<0.02){
-          ctx.fillStyle = '#fff';
-          ctx.fillRect(p.x+irand(4,p.w-4), p.y-2, 2, 2);
-        }
-      }
-    }
-
-    function drawHay(){
-      hay.forEach(h=>{
-        if (h.taken) return;
-        // hay bale
-        ctx.save();
-        ctx.translate(h.x, h.y);
-        ctx.fillStyle = '#f4d06f';
-        roundRect(ctx, -6, -4, 12, 8, 2); ctx.fill();
-        ctx.strokeStyle = '#d4b24a';
-        ctx.lineWidth = 1; ctx.strokeRect(-6, -4, 12, 8);
-        ctx.restore();
-      });
-    }
-
-    function drawCow(){
-      ctx.save();
-      ctx.translate(cow.x, cow.y);
-
-      // subtle bob
-      const bob = Math.sin(tick/10)*1.0;
-      ctx.translate(0, bob);
-
-      // Shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.15)';
-      ellipse(ctx, 0, cow.h*0.55, cow.w*0.6, 4); ctx.fill();
-
-      // Body
-      ctx.fillStyle = '#ffffff';
-      roundRect(ctx, -cow.w*0.5, -cow.h*0.4, cow.w*0.9, cow.h*0.65, 6); ctx.fill();
-
-      // Spots
-      ctx.fillStyle = '#2d2a2a';
-      ellipse(ctx, -8, -2, 8, 6); ctx.fill();
-      ellipse(ctx, 6, 4, 7, 5); ctx.fill();
-
-      // Head
-      roundRect(ctx, cow.w*0.2, -cow.h*0.5, 16, 14, 4); ctx.fillStyle = '#ffffff'; ctx.fill();
-
-      // Ears
-      ctx.fillStyle = '#ffffff';
-      roundRect(ctx, cow.w*0.2-2, -cow.h*0.5-6, 6, 8, 2); ctx.fill();
-      roundRect(ctx, cow.w*0.2+12, -cow.h*0.5-6, 6, 8, 2); ctx.fill();
-
-      // Horns
-      ctx.fillStyle = '#e5d1a4';
-      roundRect(ctx, cow.w*0.2, -cow.h*0.5-8, 5, 6, 2); ctx.fill();
-      roundRect(ctx, cow.w*0.2+11, -cow.h*0.5-8, 5, 6, 2); ctx.fill();
-
-      // Eyes
-      ctx.fillStyle = '#000';
-      ellipse(ctx, cow.w*0.2+5, -cow.h*0.5+5, 1.5, 1.5); ctx.fill();
-      ellipse(ctx, cow.w*0.2+11, -cow.h*0.5+5, 1.5, 1.5); ctx.fill();
-
-      // Muzzle
-      ctx.fillStyle = '#ffb4b4';
-      roundRect(ctx, cow.w*0.2+2, -cow.h*0.5+7, 14, 7, 3); ctx.fill();
-      ctx.fillStyle = '#7a4a4a';
-      ellipse(ctx, cow.w*0.2+6, -cow.h*0.5+10, 0.9, 0.9); ctx.fill();
-      ellipse(ctx, cow.w*0.2+12, -cow.h*0.5+10, 0.9, 0.9); ctx.fill();
-
-      // Legs (simple)
-      ctx.fillStyle = '#ffffff';
-      roundRect(ctx, -cow.w*0.25, cow.h*0.2, 6, 10, 2); ctx.fill();
-      roundRect(ctx, -cow.w*0.05, cow.h*0.2, 6, 10, 2); ctx.fill();
-      roundRect(ctx, cow.w*0.15, cow.h*0.2, 6, 10, 2); ctx.fill();
-
-      // Tail
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(-cow.w*0.45, -2); ctx.quadraticCurveTo(-cow.w*0.6, 0, -cow.w*0.55, 8); ctx.stroke();
-      ctx.fillStyle = '#2d2a2a'; ellipse(ctx, -cow.w*0.55, 8, 2, 2); ctx.fill();
-
+      // cow
+      ctx.save(); ctx.translate(cow.x, cow.y);
+      // shadow
+      ctx.fillStyle='rgba(0,0,0,0.18)'; ellipse(ctx,0,cow.h*0.6,cow.w*0.6,6); ctx.fill();
+      // body
+      ctx.fillStyle='#ffffff'; roundRect(ctx,-cow.w*0.5,-cow.h*0.4,cow.w*0.9,cow.h*0.65,8); ctx.fill();
+      // spots
+      ctx.fillStyle='#2d2a2a'; ellipse(ctx,-10,-6,9,6); ctx.fill(); ellipse(ctx,6,4,7,5); ctx.fill();
+      // head
+      roundRect(ctx,cow.w*0.15,-cow.h*0.5,18,16,6); ctx.fillStyle='#fff'; ctx.fill();
+      // eyes & muzzle
+      ctx.fillStyle='#000'; ellipse(ctx,cow.w*0.15+6,-cow.h*0.5+7,1.8,1.8); ctx.fill(); ellipse(ctx,cow.w*0.15+12,-cow.h*0.5+7,1.8,1.8); ctx.fill();
+      ctx.fillStyle='#ffb4b4'; roundRect(ctx,cow.w*0.15+4,-cow.h*0.5+11,14,7,4); ctx.fill();
+      // legs
+      ctx.fillStyle='#fff'; roundRect(ctx,-cow.w*0.24,cow.h*0.2,6,12,3); ctx.fill(); roundRect(ctx,-cow.w*0.04,cow.h*0.2,6,12,3); ctx.fill(); roundRect(ctx,cow.w*0.16,cow.h*0.2,6,12,3); ctx.fill();
       ctx.restore();
+
+      // overlay messages
+      if(state==='menu') drawCenterOverlay('Lamumu Jump','Tap anywhere to jump and guide the cow');
+      if(state==='paused') drawCenterOverlay('Paused','Tap to resume');
+      if(state==='gameover') drawCenterOverlay('Game Over',`Score: ${score}`);
     }
 
-    function roundRect(ctx, x, y, w, h, r){
-      ctx.beginPath();
-      ctx.moveTo(x+r, y);
-      ctx.arcTo(x+w, y, x+w, y+h, r);
-      ctx.arcTo(x+w, y+h, x, y+h, r);
-      ctx.arcTo(x, y+h, x, y, r);
-      ctx.arcTo(x, y, x+w, y, r);
-      ctx.closePath();
-    }
-    function ellipse(ctx, x, y, rx, ry){
-      ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI*2); ctx.closePath();
-    }
+    function drawCenterOverlay(t,sub){
+      ctx.save(); ctx.fillStyle='rgba(255,255,255,0.95)'; const w = canvas.width*0.86; const h = 84; const x = (canvas.width-w)/2; const y = 36; roundRect(ctx,x,y,w,h,14); ctx.fill(); ctx.fillStyle='#071233'; ctx.font='22px system-ui'; ctx.textAlign='center'; ctx.fillText(t, canvas.width*0.5, y+36); ctx.font='14px system-ui'; ctx.fillText(sub, canvas.width*0.5, y+58); ctx.restore(); }
 
-    function drawUI(){
-      if (state === 'menu') {
-        drawOverlay('Cow Jump', 'Tap to Jump. Reach new platforms to score!');
-      } else if (state === 'paused') {
-        drawOverlay('Paused', 'Tap Resume or press P.');
-      } else if (state === 'gameover') {
-        drawOverlay('Game Over', `Score: ${score}  •  High: ${hiscore}`);
-      }
-    }
+    // main loop
+    let last = performance.now(); function loop(now){ const dt = (now-last)/16.67; last = now; update(dt); draw(); requestAnimationFrame(loop); }
+    resetWorld(); requestAnimationFrame(loop);
 
-    function drawOverlay(title, subtitle){
-      ctx.save();
-      ctx.fillStyle = 'rgba(255,255,255,0.75)';
-      ctx.fillRect(16, 30, W-32, 100);
-      ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 28px system-ui, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(title, W/2, 72);
-      ctx.font = '16px system-ui, sans-serif';
-      ctx.fillText(subtitle, W/2, 100);
-      ctx.restore();
-    }
+    // helper: ensure audio resume on first user gesture
+    function resumeAudio(){ if(!audio) return; if(audio.state==='suspended') audio.resume(); window.removeEventListener('pointerdown', resumeAudio); window.removeEventListener('keydown', resumeAudio); }
+    window.addEventListener('pointerdown', resumeAudio); window.addEventListener('keydown', resumeAudio);
 
-    let last = 0;
-    function loop(ts){
-      requestAnimationFrame(loop);
-      const dt = (ts - last)/16.67; last = ts;
-      update(dt);
+    // small UI defaults
+    btnPause.textContent = 'Pause'; btnRetry.textContent='Retry';
+    showOverlay('Lamumu Jump','Tap to start — cow will move horizontally toward your tap');
 
-      ctx.clearRect(0,0,W,H);
-      drawBackground();
-      drawPlatforms();
-      drawHay();
-      drawCow();
-      drawUI();
-    }
-
-    resetWorld();
-    requestAnimationFrame(loop);
   })();
   </script></body>
-  </html>
+</html>
