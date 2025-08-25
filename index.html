@@ -1,207 +1,366 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lamumu Jump</title>
-<style>
-body, html { margin:0; padding:0; overflow:hidden; font-family: 'Poppins', sans-serif; background: linear-gradient(to bottom, #87ceeb, #e0f7fa); }
-canvas { display:block; }
-#title { position:absolute; top:20px; left:50%; transform:translateX(-50%); font-size:36px; font-weight:bold; color:white; text-shadow:0 0 10px #ff69b4, 0 0 20px #ff69b4; }
-#overlay { position:absolute; top:0; left:0; width:100%; height:100%; display:grid; place-items:center; background: rgba(0,0,0,0.5); color:white; font-size:36px; display:none; text-align:center; }
-#restart { position:absolute; top:55%; left:50%; transform:translate(-50%,-50%); font-size:24px; padding:12px 24px; background:#ff69b4; border:none; border-radius:12px; color:white; cursor:pointer; display:none; box-shadow:0 4px 10px rgba(0,0,0,0.3); }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lamumu Jump</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+    }
+    
+    #gameContainer {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      height: 100vh;
+      max-height: 800px;
+      overflow: hidden;
+    }
+    
+    canvas {
+      display: block;
+      background: linear-gradient(to bottom, #87ceeb, #e0f7fa);
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+    
+    #title {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 36px;
+      font-weight: bold;
+      color: white;
+      text-shadow: 0 0 10px #ff69b4, 0 0 20px #ff69b4;
+      z-index: 10;
+    }
+    
+    #score {
+      position: absolute;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+      text-shadow: 0 0 5px #000, 0 0 10px #000;
+      z-index: 10;
+    }
+    
+    #gameOver {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 40px;
+      font-weight: bold;
+      color: white;
+      text-shadow: 0 0 10px red, 0 0 20px black;
+      display: none;
+      z-index: 10;
+      text-align: center;
+    }
+    
+    #restart {
+      position: absolute;
+      top: 55%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      padding: 10px 20px;
+      background: #ff69b4;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      display: none;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+    
+    #instructions {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 16px;
+      color: white;
+      text-shadow: 0 0 5px #000;
+      text-align: center;
+      z-index: 10;
+    }
+    
+    @media (max-width: 500px) {
+      #title {
+        font-size: 28px;
+      }
+      
+      #score {
+        font-size: 20px;
+        top: 70px;
+      }
+      
+      #gameOver {
+        font-size: 32px;
+      }
+      
+      #restart {
+        font-size: 20px;
+        padding: 8px 16px;
+      }
+      
+      #instructions {
+        font-size: 14px;
+        bottom: 15px;
+      }
+    }
+  </style>
 </head>
 <body>
-<div id="title">Lamumu Jump 🐄</div>
-<div id="overlay"></div>
-<button id="restart">Restart</button>
-<canvas id="gameCanvas"></canvas>
-<script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;let cow = {x:canvas.width/2, y:canvas.height/2, w:50, h:50, vy:0, onGround:false}; let gravity = 0.5, jumpPower = -10; let platforms = [], hay = [], lives=3, score=0; let targetX = null, gameOver=false;
+  <div id="gameContainer">
+    <div id="title">Lamumu Jump 🐄</div>
+    <div id="score">Score: 0</div>
+    <div id="gameOver">Game Over 💀<br><span style="font-size: 24px;">Score: 0</span></div>
+    <button id="restart">Restart</button>
+    <div id="instructions">Press SPACE or Tap to Jump</div>
+    <canvas id="gameCanvas"></canvas>
+  </div>
 
-const overlay = document.getElementById('overlay'); const restartBtn = document.getElementById('restart');
+  <script>
+    // Game variables
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const gameContainer = document.getElementById("gameContainer");
+    const scoreDisplay = document.getElementById("score");
+    const gameOverDisplay = document.getElementById("gameOver");
+    
+    // Set canvas size to match container
+    function resizeCanvas() {
+      canvas.width = gameContainer.clientWidth;
+      canvas.height = gameContainer.clientHeight;
+      
+      // Reset cow position if game is running
+      if (!gameOver && cow) {
+        cow.y = canvas.height / 2;
+      }
+    }
+    
+    // Initialize canvas size
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    let cow = { 
+      x: canvas.width * 0.15, 
+      y: canvas.height/2, 
+      radius: Math.min(canvas.width, canvas.height) * 0.05, 
+      dy: 0 
+    };
+    
+    let gravity = 0.5;
+    let jumpPower = -12;
+    let obstacles = [];
+    let score = 0;
+    let gameOver = false;
+    let frameCount = 0;
+    let obstacleSpeed = 5;
 
-function rand(a,b){ return Math.random()*(b-a)+a; }
-
-function resetGame(){ cow = {x:canvas.width/2, y:canvas.height/2, w:50, h:50, vy:0, onGround:false}; platforms=[]; hay=[]; lives=3; score=0; targetX=null; gameOver=false; overlay.style.display='none'; restartBtn.style.display='none'; for(let i=0;i<7;i++){ let w=rand(100,200); let x=rand(50,canvas.width-w-50); let y=canvas.height - i*120; platforms.push({x,y,w,h:12}); if(Math.random()<0.3) hay.push({x:x+w/2-7, y:y-22, r:6, taken:false}); } }
-
-function drawCow(){ ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(cow.x,cow.y,25,0,Math.PI*2); ctx.fill(); ctx.fillStyle='black'; ctx.fillRect(cow.x-15,cow.y-10,10,10); ctx.fillRect(cow.x+5,cow.y-10,10,10); }
-
-function drawPlatforms(){ ctx.fillStyle='#228B22'; platforms.forEach(p=>ctx.fillRect(p.x,p.y,p.w,p.h)); }
-
-function drawHay(){ ctx.fillStyle='#f4d06f'; hay.forEach(h=>{ if(!h.taken) ctx.fillRect(h.x-7,h.y-6,14,12); }); }
-
-function update(){ if(gameOver) return; cow.vy += gravity; cow.y += cow.vy;
-
-if(targetX!==null){ let dx = targetX-cow.x; cow.x += dx*0.12; if(Math.abs(dx)<2) targetX=null; }
-
-cow.onGround=false; platforms.forEach(p=>{ if(cow.x + cow.w/2 > p.x && cow.x - cow.w/2 < p.x + p.w){ if(cow.y + cow.h/2 >= p.y && cow.y + cow.h/2 <= p.y + p.h + cow.vy){ cow.y = p.y - cow.h/2; cow.vy=0; cow.onGround=true; } } });
-
-hay.forEach(h=>{ if(!h.taken){ let dx=cow.x-(h.x+7), dy=cow.y-(h.y+6); if(dxdx+dydy<25*25){ h.taken=true; score+=2; playCollect(); } } });
-
-platforms.forEach(p=>p.y+=1.5); hay.forEach(h=>h.y+=1.5);
-
-if(cow.y>canvas.height+50){ lives--; if(lives<=0){ endGame(); } else { cow.y=50; cow.vy=0; } }
-
-if(platforms[0].y>canvas.height){ platforms.shift(); let w=rand(100,200); let x=rand(50,canvas.width-w-50); let y=platforms[platforms.length-1].y-120; platforms.push({x,y,w,h:12}); if(Math.random()<0.3) hay.push({x:x+w/2-7, y:y-22, r:6, taken:false}); } }
-
-function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height); drawPlatforms(); drawHay(); drawCow(); }
-
-function loop(){ update(); draw(); requestAnimationFrame(loop); }
-
-function playJump(){ let a=new Audio('https://www.fesliyanstudios.com/play-mp3/387'); a.play(); } function playCollect(){ let a=new Audio('https://www.fesliyanstudios.com/play-mp3/669'); a.play(); }
-
-function jump(clientX){ if(cow.onGround){ cow.vy=jumpPower; cow.onGround=false; playJump(); } if(clientX!==undefined) targetX=clientX; }
-
-function endGame(){ gameOver=true; overlay.style.display='grid'; overlay.textContent='Game Over 🐄\nScore: '+score; restartBtn.style.display='block'; }
-
-window.addEventListener('keydown', e=>{ if(e.code==='Space') jump(); }); window.addEventListener('pointerdown', e=>jump(e.clientX)); restartBtn.addEventListener('click', ()=>{ resetGame(); });
-
-resetGame(); loop(); </script>
-
-</body>
-</html>
-    // Input — on tap/click player jumps and cow moves horizontally toward tap
-    function handleTap(clientX){
-      const rect = canvas.getBoundingClientRect();
-      const x = (clientX - rect.left);
-      // set horizontal target
-      targetX = Math.max(20, Math.min(canvas.width - 20, x));
-      // jump
-      if(cow.onGround) { cow.vy = JUMP_V; cow.onGround=false; playJumpSound(); }
-      else if(cow.vy > JUMP_V*0.4) { cow.vy += -1.6; playJumpSound(); }
+    function drawCow() {
+      // Draw cow body
+      ctx.fillStyle = "white";
+      ctx.beginPath();
+      ctx.arc(cow.x, cow.y, cow.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // Draw cow spots
+      ctx.fillStyle = "black";
+      ctx.beginPath();
+      ctx.arc(cow.x - cow.radius * 0.3, cow.y - cow.radius * 0.2, cow.radius * 0.2, 0, Math.PI * 2);
+      ctx.arc(cow.x + cow.radius * 0.4, cow.y + cow.radius * 0.3, cow.radius * 0.25, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Draw eyes
+      ctx.fillStyle = "black";
+      ctx.beginPath();
+      ctx.arc(cow.x - cow.radius * 0.4, cow.y - cow.radius * 0.3, cow.radius * 0.15, 0, Math.PI * 2);
+      ctx.arc(cow.x + cow.radius * 0.4, cow.y - cow.radius * 0.3, cow.radius * 0.15, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Draw nostrils
+      ctx.beginPath();
+      ctx.arc(cow.x + cow.radius * 0.6, cow.y, cow.radius * 0.08, 0, Math.PI * 2);
+      ctx.arc(cow.x + cow.radius * 0.6, cow.y + cow.radius * 0.1, cow.radius * 0.08, 0, Math.PI * 2);
+      ctx.fill();
     }
 
-    // event listeners
-    window.addEventListener('pointerdown', (e)=>{
-      e.preventDefault();
-      if(state === 'menu') start();
-      else if(state === 'gameover') start();
-      else if(state === 'paused') { state='playing'; btnPause.textContent='Pause'; return; }
-      handleTap(e.clientX);
-    });
-    window.addEventListener('keydown', (e)=>{
-      if(e.code==='Space' || e.code==='ArrowUp'){ e.preventDefault(); if(state==='menu') start(); else if(state==='gameover') start(); handleTap(window.innerWidth/2); }
-      if(e.code==='KeyP'){ togglePause(); }
-    });
+    function drawObstacles() {
+      ctx.fillStyle = "#228B22";
+      obstacles.forEach(ob => {
+        // Top obstacle
+        ctx.fillRect(ob.x, 0, ob.width, ob.top);
+        // Bottom obstacle
+        ctx.fillRect(ob.x, canvas.height - ob.bottom, ob.width, ob.bottom);
+        
+        // Add some details to obstacles
+        ctx.fillStyle = "#1c6b1c";
+        ctx.fillRect(ob.x, ob.top - 10, ob.width, 10);
+        ctx.fillRect(ob.x, canvas.height - ob.bottom, ob.width, 10);
+      });
+    }
 
-    btnStart.addEventListener('click', start);
-    btnRetry.addEventListener('click', start);
-    btnPause.addEventListener('click', togglePause);
+    function updateObstacles() {
+      // Increase difficulty over time
+      if (frameCount % 500 === 0) {
+        obstacleSpeed += 0.5;
+      }
+      
+      if (Math.random() < 0.02) {
+        let gap = canvas.height * 0.3; // Gap size relative to screen height
+        let minHeight = canvas.height * 0.15; // Minimum obstacle height
+        
+        let top = Math.random() * (canvas.height - gap - minHeight * 2) + minHeight;
+        obstacles.push({ 
+          x: canvas.width, 
+          width: canvas.width * 0.1, 
+          top: top, 
+          bottom: canvas.height - top - gap,
+          scored: false
+        });
+      }
+      
+      obstacles.forEach(ob => ob.x -= obstacleSpeed);
+      obstacles = obstacles.filter(ob => ob.x + ob.width > 0);
+      
+      // Score when passing obstacles
+      obstacles.forEach(ob => {
+        if (!ob.scored && ob.x + ob.width < cow.x) {
+          ob.scored = true;
+          score++;
+          scoreDisplay.textContent = `Score: ${score}`;
+        }
+      });
+    }
 
-    function togglePause(){ if(state==='playing'){ state='paused'; btnPause.textContent='Resume'; showOverlay('Paused','Press Resume or tap the canvas to continue'); } else if(state==='paused'){ state='playing'; btnPause.textContent='Pause'; hideOverlay(); } }
-
-    function start(){ resetWorld(); state='playing'; hideOverlay(); }
-
-    function gameOver(){ state='gameover'; showOverlay('Game Over', `Score: ${score} • High: ${hiscore}`); if(score>hiscore){ hiscore = score; localStorage.setItem('lamumu_hiscore', String(hiscore)); hiEl.textContent = hiscore; } }
-
-    function showOverlay(title, text){ overlay.innerHTML = `<div class="message"><h2>${title}</h2><div class="small">${text}</div></div>`; overlay.style.pointerEvents='auto'; }
-    function hideOverlay(){ overlay.innerHTML=''; overlay.style.pointerEvents='none'; }
-
-    function updateScore(){ scoreEl.textContent = score; }
-
-    function update(dt){ if(state!=='playing') return; tick++;
-      // difficulty
-      if(score>0 && score%20 === 0) speed = 1.6 + Math.min(2.2, score/60);
-
-      // move environment
-      platforms.forEach(p=>p.y += speed);
-      hay.forEach(h=>h.y += speed);
-      clouds.forEach(c=>{ c.x += c.s; if(c.x - c.w > canvas.width) c.x = -c.w; });
-
-      // recycle platforms
-      for(let i=platforms.length-1;i>=0;i--){ if(platforms[i].y > canvas.height + 30){ platforms.splice(i,1); spawnRowAtTop(); } }
-      for(let i=hay.length-1;i>=0;i--){ if(hay[i].y > canvas.height + 30) hay.splice(i,1); }
-
-      // physics
-      cow.vy = Math.min(MAX_FALL, cow.vy + GRAVITY);
-      cow.y += cow.vy;
-
-      // horizontal movement toward targetX with easing
-      if(targetX !== null){ const dx = targetX - cow.x; cow.vx = dx * 0.12; cow.x += cow.vx; if(Math.abs(dx) < 2) { cow.vx = 0; targetX = null; } }
-      // subtle drift
-      cow.x += Math.sin(tick/60) * 0.2;
-
-      // platform collision when falling
-      if(cow.vy >= 0){
-        for(const p of platforms){
-          const withinX = cow.x + cow.w*0.4 > p.x && cow.x - cow.w*0.4 < p.x + p.w;
-          const feetY = cow.y + cow.h*0.5;
-          if(withinX && feetY >= p.y && feetY <= p.y + p.h + Math.max(1, cow.vy)){
-            cow.y = p.y - cow.h*0.5; cow.vy = 0; if(!cow.onGround){ cow.onGround = true; if(cow.lastId !== p.id){ score++; updateScore(); cow.lastId = p.id; playLandSound(); } } break;
+    function checkCollision() {
+      // Ground or ceiling collision
+      if (cow.y + cow.radius > canvas.height || cow.y - cow.radius < 0) {
+        return true;
+      }
+      
+      // Obstacle collision
+      for (let ob of obstacles) {
+        if (cow.x + cow.radius > ob.x && cow.x - cow.radius < ob.x + ob.width) {
+          if (cow.y - cow.radius < ob.top || cow.y + cow.radius > canvas.height - ob.bottom) {
+            return true;
           }
         }
-      } else { cow.onGround = false; }
-
-      // collect hay
-      for(const h of hay){ if(!h.taken){ const dx = cow.x - h.x; const dy = cow.y - h.y; if(dx*dx + dy*dy < (cow.w*0.35 + h.r)*(cow.w*0.35 + h.r)){ h.taken = true; score += 2; updateScore(); playCollect(); } } }
-
-      // lose if fall below or go too high
-      if(cow.y - cow.h*0.5 > canvas.height + 12 || cow.y + cow.h*0.5 < -100) { gameOver(); }
+      }
+      
+      return false;
     }
 
-    // Drawing helpers
-    function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
-    function ellipse(ctx,x,y,rx,ry){ ctx.beginPath(); ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2); ctx.closePath(); }
+    function gameLoop() {
+      if (gameOver) return;
+      
+      frameCount++;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw background
+      ctx.fillStyle = "#87ceeb";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw ground
+      ctx.fillStyle = "#8B4513";
+      ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+      
+      // Draw grass on ground
+      ctx.fillStyle = "#2E8B57";
+      ctx.fillRect(0, canvas.height - 20, canvas.width, 5);
 
-    function draw(){
-      // clear
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      // subtle background
-      const g = ctx.createLinearGradient(0,0,0,canvas.height); g.addColorStop(0,'#e7fbff'); g.addColorStop(0.35,'#dff6ff'); g.addColorStop(1,'#bfe9ff'); ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
+      // Update cow position
+      cow.dy += gravity;
+      cow.y += cow.dy;
 
-      // clouds
-      clouds.forEach(c=>{ ctx.fillStyle='rgba(255,255,255,0.9)'; roundRect(ctx,c.x,c.y,c.w,c.h,12); ctx.fill(); });
+      drawCow();
+      updateObstacles();
+      drawObstacles();
 
-      // platforms
-      platforms.forEach(p=>{
-        const grad = ctx.createLinearGradient(p.x,p.y,p.x,p.y+p.h); grad.addColorStop(0,'#7bd389'); grad.addColorStop(1,'#4caf50'); ctx.fillStyle = grad; roundRect(ctx,p.x,p.y,p.w,p.h,8); ctx.fill();
-      });
+      if (checkCollision()) {
+        gameOverDisplay.innerHTML = `Game Over 💀<br><span style="font-size: 24px;">Score: ${score}</span>`;
+        gameOverDisplay.style.display = "block";
+        document.getElementById("restart").style.display = "block";
+        gameOver = true;
+        return;
+      }
 
-      // hay
-      hay.forEach(h=>{ if(h.taken) return; ctx.save(); ctx.translate(h.x,h.y); roundRect(ctx,-7,-6,14,12,3); ctx.fillStyle='#f4d06f'; ctx.fill(); ctx.restore(); });
-
-      // cow
-      ctx.save(); ctx.translate(cow.x, cow.y);
-      // shadow
-      ctx.fillStyle='rgba(0,0,0,0.18)'; ellipse(ctx,0,cow.h*0.6,cow.w*0.6,6); ctx.fill();
-      // body
-      ctx.fillStyle='#ffffff'; roundRect(ctx,-cow.w*0.5,-cow.h*0.4,cow.w*0.9,cow.h*0.65,8); ctx.fill();
-      // spots
-      ctx.fillStyle='#2d2a2a'; ellipse(ctx,-10,-6,9,6); ctx.fill(); ellipse(ctx,6,4,7,5); ctx.fill();
-      // head
-      roundRect(ctx,cow.w*0.15,-cow.h*0.5,18,16,6); ctx.fillStyle='#fff'; ctx.fill();
-      // eyes & muzzle
-      ctx.fillStyle='#000'; ellipse(ctx,cow.w*0.15+6,-cow.h*0.5+7,1.8,1.8); ctx.fill(); ellipse(ctx,cow.w*0.15+12,-cow.h*0.5+7,1.8,1.8); ctx.fill();
-      ctx.fillStyle='#ffb4b4'; roundRect(ctx,cow.w*0.15+4,-cow.h*0.5+11,14,7,4); ctx.fill();
-      // legs
-      ctx.fillStyle='#fff'; roundRect(ctx,-cow.w*0.24,cow.h*0.2,6,12,3); ctx.fill(); roundRect(ctx,-cow.w*0.04,cow.h*0.2,6,12,3); ctx.fill(); roundRect(ctx,cow.w*0.16,cow.h*0.2,6,12,3); ctx.fill();
-      ctx.restore();
-
-      // overlay messages
-      if(state==='menu') drawCenterOverlay('Lamumu Jump','Tap anywhere to jump and guide the cow');
-      if(state==='paused') drawCenterOverlay('Paused','Tap to resume');
-      if(state==='gameover') drawCenterOverlay('Game Over',`Score: ${score}`);
+      requestAnimationFrame(gameLoop);
     }
 
-    function drawCenterOverlay(t,sub){
-      ctx.save(); ctx.fillStyle='rgba(255,255,255,0.95)'; const w = canvas.width*0.86; const h = 84; const x = (canvas.width-w)/2; const y = 36; roundRect(ctx,x,y,w,h,14); ctx.fill(); ctx.fillStyle='#071233'; ctx.font='22px system-ui'; ctx.textAlign='center'; ctx.fillText(t, canvas.width*0.5, y+36); ctx.font='14px system-ui'; ctx.fillText(sub, canvas.width*0.5, y+58); ctx.restore(); }
+    function jump() {
+      cow.dy = jumpPower;
+      try {
+        let audio = new Audio("https://www.fesliyanstudios.com/play-mp3/387");
+        audio.volume = 0.3;
+        audio.play().catch(e => console.log("Audio play failed:", e));
+      } catch (error) {
+        console.log("Audio error:", error);
+      }
+    }
 
-    // main loop
-    let last = performance.now(); function loop(now){ const dt = (now-last)/16.67; last = now; update(dt); draw(); requestAnimationFrame(loop); }
-    resetWorld(); requestAnimationFrame(loop);
+    // Event listeners
+    window.addEventListener("keydown", e => { 
+      if (e.code === "Space") {
+        e.preventDefault();
+        jump(); 
+      }
+    });
+    
+    window.addEventListener("touchstart", e => {
+      e.preventDefault();
+      jump();
+    });
+    
+    // Improved click handler for restart button
+    document.getElementById("restart").onclick = () => {
+      cow = { 
+        x: canvas.width * 0.15, 
+        y: canvas.height/2, 
+        radius: Math.min(canvas.width, canvas.height) * 0.05, 
+        dy: 0 
+      };
+      obstacles = [];
+      score = 0;
+      frameCount = 0;
+      obstacleSpeed = 5;
+      gameOver = false;
+      scoreDisplay.textContent = `Score: ${score}`;
+      gameOverDisplay.style.display = "none";
+      document.getElementById("restart").style.display = "none";
+      gameLoop();
+    };
 
-    // helper: ensure audio resume on first user gesture
-    function resumeAudio(){ if(!audio) return; if(audio.state==='suspended') audio.resume(); window.removeEventListener('pointerdown', resumeAudio); window.removeEventListener('keydown', resumeAudio); }
-    window.addEventListener('pointerdown', resumeAudio); window.addEventListener('keydown', resumeAudio);
-
-    // small UI defaults
-    btnPause.textContent = 'Pause'; btnRetry.textContent='Retry';
-    showOverlay('Lamumu Jump','Tap to start — cow will move horizontally toward your tap');
-
-  })();
-  </script></body>
+    // Start the game
+    gameLoop();
+  </script>
+</body>
 </html>
