@@ -1,104 +1,494 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lamumu Jump - Fixed</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whack-a-Character Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            padding: 20px;
+        }
+        
+        .game-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #2575fc;
+            margin-bottom: 15px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .score, .timer {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .hole {
+            width: 100%;
+            height: 120px;
+            background-color: #8B4513;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 10px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .hole:after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 30px;
+            background-color: #5D4037;
+            bottom: 0;
+            border-radius: 50%;
+        }
+        
+        .character {
+            width: 80%;
+            height: 80%;
+            position: absolute;
+            bottom: -100%;
+            left: 10%;
+            transition: bottom 0.3s ease;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center bottom;
+        }
+        
+        .character.up {
+            bottom: 15%;
+        }
+        
+        .hammer {
+            width: 80px;
+            height: 80px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30,10 L10,30 L40,60 L60,40 Z" fill="%23755c1d"/><path d="M60,40 L90,10 L95,15 L65,45 Z" fill="%239e7a2d"/><rect x="35" y="35" width="30" height="10" fill="%235a4312" transform="rotate(-45 50 40)"/></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+            pointer-events: none;
+            z-index: 10;
+            transition: transform 0.1s;
+        }
+        
+        .hammer.hit {
+            transform: translate(-50%, -50%) rotate(-30deg);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .instructions {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        
+        .instructions h2 {
+            color: #2575fc;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .instructions li:before {
+            content: '•';
+            color: #6a11cb;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 100;
+            color: white;
+            display: none;
+        }
+        
+        .game-over h2 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .game-over p {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 600px) {
+            .game-board {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .hole {
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Whack-a-Character</h1>
+        
+        <div class="score-board">
+            <div class="score">
+                <div>SCORE</div>
+                <div class="value" id="score">0</div>
+            </div>
+            <div class="timer">
+                <div>TIME LEFT</div>
+                <div class="value" id="timer">60</div>
+            </div>
+        </div>
+        
+        <div class="game-board" id="gameBoard">
+            <div class="hole">
+                <div class="character" id="char0"></div>
+            </div>
+            <div class="hole">
+                <div class="character" id="char1"></div>
+            </div>
+            <div class="hole">
+                <div class="character" id="char2"></div>
+            </div>
+            <div class="hole">
+                <div class="character" id="char3"></div>
+            </div>
+            <div class="hole">
+                <div class="character" id="char4"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn">Start Game</button>
+            <button id="resetBtn">Reset Game</button>
+        </div>
+        
+        <div class="instructions">
+            <h2>How to Play</h2>
+            <ul>
+                <li>Click the Start Game button to begin</li>
+                <li>Whack the characters that pop up from the holes</li>
+                <li>Avoid hitting the bombs or the game will end</li>
+                <li>Earn 10 points for each character you hit</li>
+                <li>Game ends when time runs out or if you hit a bomb</li>
+            </ul>
+        </div>
+    </div>
     
-    body {
-      margin: 0;
-      overflow: hidden;
-      font-family: 'Arial', sans-serif;
-      background: linear-gradient(to bottom, #1a2a6c, #b21f1f, #fdbb2d);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      width: 100vw;
-    }
+    <div class="hammer" id="hammer"></div>
     
-    #gameContainer {
-      position: relative;
-      width: 100%;
-      max-width: 500px;
-      height: 100vh;
-      max-height: 700px;
-      overflow: hidden;
-      border: 3px solid #ff69b4;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
-    }
-    
-    canvas {
-      display: block;
-      background: linear-gradient(to bottom, #87ceeb, #e0f7fa);
-      width: 100%;
-      height: 100%;
-    }
-    
-    #title {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 32px;
-      font-weight: bold;
-      color: white;
-      text-shadow: 0 0 10px #ff69b4, 0 0 20px #ff69b4;
-      z-index: 10;
-    }
-    
-    #score {
-      position: absolute;
-      top: 70px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 24px;
-      font-weight: bold;
-      color: white;
-      text-shadow: 0 0 5px #000, 0 0 10px #000;
-      z-index: 10;
-    }
-    
-    #gameOver {
-      position: absolute;
-      top: 40%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 36px;
-      font-weight: bold;
-      color: white;
-      text-shadow: 0 0 10px red, 0 0 20px black;
-      display: none;
-      z-index: 10;
-      text-align: center;
-    }
-    
-    #startScreen {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 20;
-    }
-    
-    #startTitle {
-      font-size: 42px;
-      font-weight: bold;
-      color: white;
-      text-shadow: 0 0 10px #ff69b4, 0 0 20px #ff69b4;
+    <div class="game-over" id="gameOver">
+        <h2>Game Over!</h2>
+        <p>Your Score: <span id="finalScore">0</span></p>
+        <button id="playAgainBtn">Play Again</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game elements
+            const gameBoard = document.getElementById('gameBoard');
+            const holes = document.querySelectorAll('.hole');
+            const characters = document.querySelectorAll('.character');
+            const scoreDisplay = document.getElementById('score');
+            const timerDisplay = document.getElementById('timer');
+            const startBtn = document.getElementById('startBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const hammer = document.getElementById('hammer');
+            const gameOverScreen = document.getElementById('gameOver');
+            const finalScoreDisplay = document.getElementById('finalScore');
+            const playAgainBtn = document.getElementById('playAgainBtn');
+            
+            // Game variables
+            let score = 0;
+            let timeLeft = 60;
+            let timer;
+            let gameActive = false;
+            let lastHole = -1;
+            
+            // Character types (0-3 are characters, 4 is bomb)
+            const characterTypes = [
+                { name: 'Char1', points: 10, color: '#FF5252' },
+                { name: 'Char2', points: 10, color: '#4CAF50' },
+                { name: 'Char3', points: 10, color: '#FFC107' },
+                { name: 'Char4', points: 10, color: '#9C27B0' },
+                { name: 'Bomb', points: -1, color: '#212121' }
+            ];
+            
+            // Initialize characters with SVG backgrounds
+            characters.forEach((char, index) => {
+                const type = index % 5; // Distribute types evenly
+                char.style.backgroundColor = characterTypes[type].color;
+                char.innerHTML = getCharacterSVG(characterTypes[type].color, type === 4);
+                char.dataset.type = type;
+            });
+            
+            // Move hammer with mouse
+            document.addEventListener('mousemove', (e) => {
+                hammer.style.left = e.pageX + 'px';
+                hammer.style.top = e.pageY + 'px';
+            });
+            
+            // Hammer click animation
+            document.addEventListener('mousedown', () => {
+                hammer.classList.add('hit');
+            });
+            
+            document.addEventListener('mouseup', () => {
+                hammer.classList.remove('hit');
+            });
+            
+            // Start game
+            startBtn.addEventListener('click', startGame);
+            
+            // Reset game
+            resetBtn.addEventListener('click', resetGame);
+            
+            // Play again
+            playAgainBtn.addEventListener('click', resetGame);
+            
+            // Whack action
+            gameBoard.addEventListener('click', (e) => {
+                if (!gameActive) return;
+                
+                let clickedElement = e.target;
+                // Find the character element if clicked on SVG parts
+                while (clickedElement && !clickedElement.classList.contains('character') && clickedElement !== gameBoard) {
+                    clickedElement = clickedElement.parentElement;
+                }
+                
+                if (clickedElement && clickedElement.classList.contains('character') && clickedElement.classList.contains('up')) {
+                    const type = parseInt(clickedElement.dataset.type);
+                    
+                    if (type === 4) { // Bomb
+                        gameOver();
+                        return;
+                    }
+                    
+                    // Whack successful
+                    score += characterTypes[type].points;
+                    scoreDisplay.textContent = score;
+                    clickedElement.classList.remove('up');
+                    
+                    // Add visual feedback
+                    clickedElement.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        clickedElement.style.transform = 'scale(1)';
+                    }, 100);
+                }
+            });
+            
+            function startGame() {
+                if (gameActive) return;
+                
+                gameActive = true;
+                score = 0;
+                timeLeft = 60;
+                scoreDisplay.textContent = score;
+                timerDisplay.textContent = timeLeft;
+                
+                // Start timer
+                timer = setInterval(() => {
+                    timeLeft--;
+                    timerDisplay.textContent = timeLeft;
+                    
+                    if (timeLeft <= 0) {
+                        gameOver();
+                    }
+                }, 1000);
+                
+                // Start popping up characters
+                popUpCharacters();
+            }
+            
+            function resetGame() {
+                clearInterval(timer);
+                gameActive = false;
+                score = 0;
+                timeLeft = 60;
+                scoreDisplay.textContent = score;
+                timerDisplay.textContent = timeLeft;
+                
+                // Hide all characters
+                characters.forEach(char => {
+                    char.classList.remove('up');
+                });
+                
+                // Hide game over screen
+                gameOverScreen.style.display = 'none';
+            }
+            
+            function popUpCharacters() {
+                if (!gameActive) return;
+                
+                const time = Math.random() * 1500 + 500; // Random time between 0.5-2s
+                const hole = selectRandomHole();
+                const character = hole.querySelector('.character');
+                const type = Math.random() < 0.2 ? 4 : Math.floor(Math.random() * 4); // 20% chance of bomb
+                
+                // Set character type
+                character.dataset.type = type;
+                character.innerHTML = getCharacterSVG(characterTypes[type].color, type === 4);
+                character.style.backgroundColor = characterTypes[type].color;
+                
+                // Show character
+                character.classList.add('up');
+                
+                // Hide after random time
+                setTimeout(() => {
+                    character.classList.remove('up');
+                    if (gameActive) {
+                        popUpCharacters();
+                    }
+                }, time);
+            }
+            
+            function selectRandomHole() {
+                let index = Math.floor(Math.random() * holes.length);
+                // Prevent same hole from being selected twice in a row
+                while (index === lastHole) {
+                    index = Math.floor(Math.random() * holes.length);
+                }
+                lastHole = index;
+                return holes[index];
+            }
+            
+            function gameOver() {
+                gameActive = false;
+                clearInterval(timer);
+                
+                // Show game over screen
+                finalScoreDisplay.textContent = score;
+                gameOverScreen.style.display = 'flex';
+            }
+            
+            // Helper function to generate SVG for characters
+            function getCharacterSVG(color, isBomb) {
+                if (isBomb) {
+                    return `
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                            <circle cx="50" cy="40" r="30" fill="${color}"/>
+                            <rect x="45" y="70" width="10" height="15" fill="#795548"/>
+                            <path d="M40,25 Q50,10 60,25" stroke="#FFD700" stroke-width="3" fill="none"/>
+                            <circle cx="40" cy="30" r="3" fill="white"/>
+                            <circle cx="60" cy="30" r="3" fill="white"/>
+                            <path d="M45,40 Q50,45 55,40" stroke="white" stroke-width="2" fill="none"/>
+                        </svg>
+                    `;
+                } else {
+                    return `
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                            <circle cx="50" cy="40" r="30" fill="${color}"/>
+                            <circle cx="40" cy="30" r="5" fill="white"/>
+                            <circle cx="60" cy="30" r="5" fill="white"/>
+                            <circle cx="40" cy="30" r="2" fill="black"/>
+                            <circle cx="60" cy="30" r="2" fill="black"/>
+                            <path d="M40,45 Q50,55 60,45" stroke="white" stroke-width="2" fill="none"/>
+                        </svg>
+                    `;
+                }
+            }
+        });
+    </script>
+</body>
+</html>      text-shadow: 0 0 10px #ff69b4, 0 0 20px #ff69b4;
       margin-bottom: 20px;
     }
     
