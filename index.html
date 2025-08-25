@@ -1,181 +1,69 @@
 <!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <title>Lamumu Jump 🐄</title>
-  <style>
-    :root{
-      --bg1: #0f172a; /* deep */
-      --bg2: #071233; /* deep blue */
-      --panel: rgba(255,255,255,0.06);
-      --glass: rgba(255,255,255,0.08);
-      --accent: #ff7a59;
-      --accent-2: #ffd166;
-      --muted: rgba(255,255,255,0.6);
-      --shadow: 0 12px 30px rgba(2,6,23,0.6);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}
-    body{
-      background: radial-gradient(1200px 600px at 10% 10%, rgba(255,122,89,0.06), transparent), linear-gradient(180deg,var(--bg2),var(--bg1));
-      color:var(--muted);
-      display:flex;align-items:center;justify-content:center;padding:18px;
-    }
-    .container{width:min(960px,96vw);max-width:420px;position:relative}/* Header / Card */
-.card{
-  border-radius:18px;overflow:hidden;box-shadow:var(--shadow);backdrop-filter:blur(8px);
-  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
-  padding:14px;display:flex;flex-direction:column;gap:10px
-}
-.topbar{display:flex;align-items:center;justify-content:space-between}
-.title{display:flex;align-items:center;gap:10px}
-.logo{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:0 6px 18px rgba(255,122,89,0.24);font-weight:800;color:white}
-.title h1{margin:0;font-size:18px;color:#fff}
-.subtitle{margin:0;font-size:11px;opacity:.9}
-
-/* Canvas */
-.game-wrap{display:grid;place-items:center;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));border-radius:12px;padding:10px}
-canvas{width:100%;height:auto;border-radius:12px;display:block;background:linear-gradient(180deg,#bfe9ff 0%, #dff6ff 25%, transparent 60%)}
-
-.hud{display:flex;justify-content:space-between;align-items:center;padding:6px}
-.pill{background:var(--panel);padding:8px 12px;border-radius:999px;font-weight:700;color:white;display:inline-flex;gap:8px;align-items:center}
-.controls{display:flex;gap:8px}
-.btn{appearance:none;border:0;padding:8px 12px;border-radius:12px;background:transparent;color:var(--muted);cursor:pointer;font-weight:700}
-.btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#081224}
-
-.footer{display:flex;justify-content:space-between;align-items:center;padding:8px 6px;font-size:12px;color:var(--muted)}
-
-/* Overlay */
-.overlay{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
-.overlay .message{pointer-events:auto;background:linear-gradient(180deg,rgba(255,255,255,0.95),#fff);color:#071233;padding:18px;border-radius:14px;text-align:center;box-shadow:0 10px 30px rgba(2,6,23,0.3)}
-.overlay h2{margin:0 0 8px 0}
-.small{font-size:13px;color:#243447}
-
-/* small responsive tweaks */
-@media (max-width:420px){ .title h1{font-size:16px} }
-
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lamumu Jump</title>
+<style>
+body, html { margin:0; padding:0; overflow:hidden; font-family: 'Poppins', sans-serif; background: linear-gradient(to bottom, #87ceeb, #e0f7fa); }
+canvas { display:block; }
+#title { position:absolute; top:20px; left:50%; transform:translateX(-50%); font-size:36px; font-weight:bold; color:white; text-shadow:0 0 10px #ff69b4, 0 0 20px #ff69b4; }
+#overlay { position:absolute; top:0; left:0; width:100%; height:100%; display:grid; place-items:center; background: rgba(0,0,0,0.5); color:white; font-size:36px; display:none; text-align:center; }
+#restart { position:absolute; top:55%; left:50%; transform:translate(-50%,-50%); font-size:24px; padding:12px 24px; background:#ff69b4; border:none; border-radius:12px; color:white; cursor:pointer; display:none; box-shadow:0 4px 10px rgba(0,0,0,0.3); }
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <div class="topbar">
-        <div class="title">
-          <div class="logo">LM</div>
-          <div>
-            <h1>Lamumu Jump</h1>
-            <div class="subtitle">Tap where you want the cow to land — simple & chill</div>
-          </div>
-        </div>
-        <div class="pill">Score: <span id="score">0</span></div>
-      </div><div class="game-wrap">
-    <canvas id="game" width="720" height="420" aria-label="Lamumu Jump game"></canvas>
-  </div>
+<div id="title">Lamumu Jump 🐄</div>
+<div id="overlay"></div>
+<button id="restart">Restart</button>
+<canvas id="gameCanvas"></canvas>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;let cow = {x:canvas.width/2, y:canvas.height/2, w:50, h:50, vy:0, onGround:false}; let gravity = 0.5, jumpPower = -10; let platforms = [], hay = [], lives=3, score=0; let targetX = null, gameOver=false;
 
-  <div class="hud">
-    <div class="pill">High: <span id="hiscore">0</span></div>
-    <div class="controls">
-      <button class="btn" id="btnStart">Start</button>
-      <button class="btn" id="btnPause">Pause</button>
-      <button class="btn primary" id="btnRetry">Retry</button>
-    </div>
-  </div>
-  <div class="footer">Tap / Click / Space to jump • Cow moves horizontally toward your tap • Built for quick plays</div>
-</div>
+const overlay = document.getElementById('overlay'); const restartBtn = document.getElementById('restart');
 
-<!-- overlays shown by JS -->
-<div class="overlay" id="overlay"></div>
+function rand(a,b){ return Math.random()*(b-a)+a; }
 
-  </div>  <script>
-  (function(){
-    // Elements
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-    const scoreEl = document.getElementById('score');
-    const hiEl = document.getElementById('hiscore');
-    const btnStart = document.getElementById('btnStart');
-    const btnPause = document.getElementById('btnPause');
-    const btnRetry = document.getElementById('btnRetry');
-    const overlay = document.getElementById('overlay');
+function resetGame(){ cow = {x:canvas.width/2, y:canvas.height/2, w:50, h:50, vy:0, onGround:false}; platforms=[]; hay=[]; lives=3; score=0; targetX=null; gameOver=false; overlay.style.display='none'; restartBtn.style.display='none'; for(let i=0;i<7;i++){ let w=rand(100,200); let x=rand(50,canvas.width-w-50); let y=canvas.height - i*120; platforms.push({x,y,w,h:12}); if(Math.random()<0.3) hay.push({x:x+w/2-7, y:y-22, r:6, taken:false}); } }
 
-    // HiDPI
-    function rescaleCanvas(){
-      const ratio = window.devicePixelRatio || 1;
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      canvas.width = Math.floor(w * ratio);
-      canvas.height = Math.floor(h * ratio);
-      ctx.setTransform(ratio,0,0,ratio,0,0);
-    }
-    window.addEventListener('resize', rescaleCanvas);
-    rescaleCanvas();
+function drawCow(){ ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(cow.x,cow.y,25,0,Math.PI*2); ctx.fill(); ctx.fillStyle='black'; ctx.fillRect(cow.x-15,cow.y-10,10,10); ctx.fillRect(cow.x+5,cow.y-10,10,10); }
 
-    // Game constants
-    const GRAVITY = 0.5;
-    const JUMP_V = -9.2;
-    const MAX_FALL = 12;
-    const PLATFORM_MIN_W = 80;
-    const PLATFORM_MAX_W = 150;
-    const PLATFORM_GAP_MIN = 48;
-    const PLATFORM_GAP_MAX = 88;
+function drawPlatforms(){ ctx.fillStyle='#228B22'; platforms.forEach(p=>ctx.fillRect(p.x,p.y,p.w,p.h)); }
 
-    // State
-    let state = 'menu'; // menu | playing | paused | gameover
-    let platforms = [], hay = [], clouds = [];
-    let score = 0; let hiscore = parseInt(localStorage.getItem('lamumu_hiscore')||0,10); hiEl.textContent = hiscore;
-    let speed = 1.6; let tick = 0;
-    let targetX = null; // where user tapped (horizontal target)
+function drawHay(){ ctx.fillStyle='#f4d06f'; hay.forEach(h=>{ if(!h.taken) ctx.fillRect(h.x-7,h.y-6,14,12); }); }
 
-    const cow = { x: 200, y:120, w:48, h:36, vx:0, vy:0, onGround:false, lastId:-1 };
+function update(){ if(gameOver) return; cow.vy += gravity; cow.y += cow.vy;
 
-    // Audio - WebAudio synth for small sounds
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    const audio = AudioCtx ? new AudioCtx() : null;
-    function playTone(freq, time=0.06, type='sine', gain=0.14){
-      if(!audio) return;
-      const now = audio.currentTime;
-      const o = audio.createOscillator();
-      const g = audio.createGain();
-      o.type = type; o.frequency.value = freq;
-      g.gain.value = gain;
-      o.connect(g); g.connect(audio.destination);
-      o.start(now); g.gain.linearRampToValueAtTime(0.0001, now + time);
-      o.stop(now + time + 0.02);
-    }
-    function playJumpSound(){ playTone(420,0.08,'sine',0.12); }
-    function playLandSound(){ playTone(180,0.12,'triangle',0.16); }
-    function playCollect(){ playTone(880,0.08,'sawtooth',0.12); }
+if(targetX!==null){ let dx = targetX-cow.x; cow.x += dx*0.12; if(Math.abs(dx)<2) targetX=null; }
 
-    function rand(a,b){return Math.random()*(b-a)+a}
-    function irand(a,b){return Math.floor(rand(a,b))}
+cow.onGround=false; platforms.forEach(p=>{ if(cow.x + cow.w/2 > p.x && cow.x - cow.w/2 < p.x + p.w){ if(cow.y + cow.h/2 >= p.y && cow.y + cow.h/2 <= p.y + p.h + cow.vy){ cow.y = p.y - cow.h/2; cow.vy=0; cow.onGround=true; } } });
 
-    function resetWorld(){
-      platforms = []; hay = []; clouds = [];
-      // clouds
-      for(let i=0;i<6;i++) clouds.push({x:rand(0,canvas.width), y:rand(10,canvas.height*0.4), w:rand(40,110), h:rand(14,28), s:rand(0.2,0.6)});
+hay.forEach(h=>{ if(!h.taken){ let dx=cow.x-(h.x+7), dy=cow.y-(h.y+6); if(dxdx+dydy<25*25){ h.taken=true; score+=2; playCollect(); } } });
 
-      // fill platforms
-      let y = canvas.height - 40; let id=0;
-      while(y > -canvas.height){
-        const pw = rand(PLATFORM_MIN_W, PLATFORM_MAX_W);
-        const px = rand(12, canvas.width - pw - 12);
-        platforms.push({id:id++, x:px, y, w:pw, h:12});
-        if(Math.random()<0.28) hay.push({x:px + pw*0.5 - 7, y: y-22, r:6, taken:false});
-        y -= rand(PLATFORM_GAP_MIN, PLATFORM_GAP_MAX);
-      }
-      cow.x = canvas.width * 0.5; cow.y = canvas.height * 0.35; cow.vx=0; cow.vy=0; cow.onGround=false; cow.lastId=-1;
-      score = 0; speed = 1.6; tick=0; targetX=null; updateScore();
-    }
+platforms.forEach(p=>p.y+=1.5); hay.forEach(h=>h.y+=1.5);
 
-    function spawnRowAtTop(){
-      const pw = rand(PLATFORM_MIN_W, PLATFORM_MAX_W);
-      const px = rand(12, canvas.width - pw - 12);
-      const topY = -rand(PLATFORM_GAP_MIN, PLATFORM_GAP_MAX);
-      const id = platforms.length ? platforms[platforms.length-1].id + 1 : 0;
-      platforms.push({id, x:px, y:topY, w:pw, h:12});
-      if(Math.random()<0.3) hay.push({x:px + pw*0.5 - 7, y: topY - 22, r:6, taken:false});
-    }
+if(cow.y>canvas.height+50){ lives--; if(lives<=0){ endGame(); } else { cow.y=50; cow.vy=0; } }
 
+if(platforms[0].y>canvas.height){ platforms.shift(); let w=rand(100,200); let x=rand(50,canvas.width-w-50); let y=platforms[platforms.length-1].y-120; platforms.push({x,y,w,h:12}); if(Math.random()<0.3) hay.push({x:x+w/2-7, y:y-22, r:6, taken:false}); } }
+
+function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height); drawPlatforms(); drawHay(); drawCow(); }
+
+function loop(){ update(); draw(); requestAnimationFrame(loop); }
+
+function playJump(){ let a=new Audio('https://www.fesliyanstudios.com/play-mp3/387'); a.play(); } function playCollect(){ let a=new Audio('https://www.fesliyanstudios.com/play-mp3/669'); a.play(); }
+
+function jump(clientX){ if(cow.onGround){ cow.vy=jumpPower; cow.onGround=false; playJump(); } if(clientX!==undefined) targetX=clientX; }
+
+function endGame(){ gameOver=true; overlay.style.display='grid'; overlay.textContent='Game Over 🐄\nScore: '+score; restartBtn.style.display='block'; }
+
+window.addEventListener('keydown', e=>{ if(e.code==='Space') jump(); }); window.addEventListener('pointerdown', e=>jump(e.clientX)); restartBtn.addEventListener('click', ()=>{ resetGame(); });
+
+resetGame(); loop(); </script>
+
+</body>
+</html>
     // Input — on tap/click player jumps and cow moves horizontally toward tap
     function handleTap(clientX){
       const rect = canvas.getBoundingClientRect();
